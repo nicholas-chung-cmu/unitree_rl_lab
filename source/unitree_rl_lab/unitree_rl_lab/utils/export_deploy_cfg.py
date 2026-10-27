@@ -27,6 +27,28 @@ def export_deploy_cfg(env: ManagerBasedRLEnv, log_dir):
     cfg = {}  # noqa: SIM904
     cfg["joint_ids_map"] = joint_ids_map
     cfg["step_dt"] = env.cfg.sim.dt * env.cfg.decimation
+    if hasattr(env.cfg.commands, "base_velocity") and hasattr(env.cfg.commands.base_velocity, "reference"):
+        from dataclasses import asdict
+
+        cfg["conga"] = {
+            "observation_version": 1,
+            "reference": asdict(env.cfg.commands.base_velocity.reference),
+            "foot_order": ["FL_foot", "FR_foot", "RL_foot", "RR_foot"],
+            "phase_features": [
+                "sin_dance",
+                "cos_dance",
+                "sin_beat",
+                "cos_beat",
+                "travel",
+                "raw_vx",
+                "raw_vy",
+                "raw_yaw",
+                "kick_scale",
+                "bounce_scale",
+            ],
+            "clock": "elapsed_seconds_since_policy_reset",
+            "requires_conga_observation_adapter": True,
+        }
     stiffness = np.zeros(len(joint_sdk_names))
     stiffness[joint_ids_map] = asset.data.default_joint_stiffness[0].detach().cpu().numpy().tolist()
     cfg["stiffness"] = stiffness.tolist()

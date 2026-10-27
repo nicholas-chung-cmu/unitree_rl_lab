@@ -87,6 +87,9 @@ Currently supports Unitree **Go2**, **H1** and **G1-29dof** robots.
 
 ## Deploy
 
+For the phase-conditioned Go2 dance task, see [Go2 conga implementation and verification](docs/go2_conga.md)
+and the maintained [motion specification](AGENTS.md). Its new phase observations require a deployment adapter.
+
 After the model training is completed, we need to perform sim2sim on the trained strategy in Mujoco to test the performance of the model.
 Then deploy sim2real.
 
