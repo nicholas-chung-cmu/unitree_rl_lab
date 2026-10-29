@@ -20,6 +20,9 @@ class CongaReferenceCfg:
     bounce_scale: float = 1.0
     base_height: float = 0.32
     swing_height: float = 0.03
+    # Preparation-stage windows only; kick-enabled final motion is unchanged.
+    cadence_swing_start: float = 0.04
+    cadence_swing_end: float = 0.40
     contact_ramp: float = 0.04
     travel_ramp_down: float = 0.15
     travel_ramp_up: float = 0.20
@@ -39,6 +42,10 @@ class CongaReferenceCfg:
             raise ValueError("Contact ramp must lie in (0, 0.1] seconds.")
         if min(self.travel_ramp_down, self.travel_ramp_up) <= 0:
             raise ValueError("Travel ramps must be positive.")
+        if not 0 <= self.cadence_swing_start < self.cadence_swing_end <= self.beat_period:
+            raise ValueError("Cadence swing must fit inside one beat")
+        if self.cadence_swing_end - self.cadence_swing_start < 2 * self.contact_ramp:
+            raise ValueError("Cadence swing must accommodate both contact ramps")
 
 
 @dataclass
@@ -119,7 +126,7 @@ def generate_reference(time_s: torch.Tensor, cfg: CongaReferenceCfg) -> CongaRef
             events.append((1.5 + 2 * p - cfg.contact_ramp / 2, pair))
     else:
         for i in range(8):
-            start, end = i * 0.5 + 0.04, i * 0.5 + 0.40
+            start, end = i * 0.5 + cfg.cadence_swing_start, i * 0.5 + cfg.cadence_swing_end
             pair = diagonal_a if i % 2 == 0 else ~diagonal_a
             w, pulse = swing_window(t, start, end, cfg.contact_ramp)
             swing += w[:, None] * pair
@@ -167,3 +174,30 @@ def generate_reference(time_s: torch.Tensor, cfg: CongaReferenceCfg) -> CongaRef
         recovery=recovery,
         touchdown_distance=distance,
     )
+
+
+def generate_kick_only_reference(time_s: torch.Tensor, cfg: CongaReferenceCfg) -> CongaReference:
+    """Explicit periodic kick requests from stance; no traveling swings/bounce.
+
+    A separate test harness, not neutral joystick activation in the dance task.
+    Uses the original 4 s clock and FR/FL kick timing and amplitude conventions.
+    """
+    ref=generate_reference(time_s,cfg)
+    t=time_s.remainder(4.)
+    weight,pulse=swing_window(t.remainder(2.),cfg.kick_start,
+                              cfg.kick_start+cfg.kick_duration,cfg.contact_ramp)
+    weight=weight*cfg.kick_enabled; pulse=pulse*cfg.kick_enabled
+    mask=torch.arange(4,device=t.device)[None,:]==ref.kick_leg[:,None]
+    ref.contact=1-weight[:,None]*mask
+    peak=cfg.swing_height+cfg.kick_scale*(cfg.kick_height-cfg.swing_height)
+    ref.foot_height=peak*pulse[:,None]*mask
+    ref.body_height=torch.full_like(t,cfg.base_height)
+    ref.body_velocity_z=torch.zeros_like(t)
+    ref.travel=torch.zeros_like(t)
+    ref.recovery=torch.zeros_like(t)
+    distance=torch.full_like(ref.contact,4.)
+    if cfg.kick_enabled:
+        for leg,event in [(1,1.5-cfg.contact_ramp/2),(0,3.5-cfg.contact_ramp/2)]:
+            distance[:,leg]=((t-event+2.).remainder(4.)-2.).abs()
+    ref.touchdown_distance=distance
+    return ref

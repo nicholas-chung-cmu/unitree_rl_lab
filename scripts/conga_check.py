@@ -21,12 +21,16 @@ parser.add_argument("--num_envs", type=int, default=8)
 parser.add_argument("--steps", type=int, default=220)
 parser.add_argument("--task", default="Unitree-Go2-Conga")
 parser.add_argument("--checkpoint", type=Path, help="Optional exported TorchScript policy, not an RSL checkpoint")
+parser.add_argument("--rsl-checkpoint", type=Path, help="Load and export a trained RSL-RL checkpoint for evaluation")
+parser.add_argument("--walking-commands", action="store_true", help="Evaluate within the reduced walking-stage ranges")
 parser.add_argument(
     "--check-ppo-export", action="store_true", help="Construct PPO and check JIT/ONNX export without learning"
 )
 parser.add_argument("--output", type=Path, default=Path("logs/conga_check"))
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
+if args.checkpoint and args.rsl_checkpoint:
+    parser.error("Choose either --checkpoint or --rsl-checkpoint")
 app = AppLauncher(args).app
 
 import gymnasium as gym
@@ -68,6 +72,12 @@ def main():
         return
 
     cfg = load_cfg_from_registry(args.task, "env_cfg_entry_point")
+    if args.task == "Unitree-Go2-Conga-Walk-Validation":
+        assert not cfg.commands.base_velocity.reference.kick_enabled
+        assert cfg.commands.base_velocity.reference.bounce_scale == 0.0
+        assert cfg.rewards.conga_kick is None and cfg.rewards.conga_height is None
+        assert cfg.rewards.base_linear_velocity is None
+        assert cfg.rewards.conga_contact and cfg.rewards.conga_cadence and cfg.rewards.conga_marching
     cfg.scene.num_envs = args.num_envs
     cfg.sim.device = args.device or "cuda:0"
     cfg.observations.policy.enable_corruption = False
@@ -84,12 +94,12 @@ def main():
         env.episode_length_buf[:] = torch.arange(args.num_envs, device=env.device) * 7 + 1
         before = term.reference.phase.clone()
         env._reset_idx(torch.tensor([0], device=env.device))
-        assert term.reference.phase[0] == 0
+        assert term.reference.phase[0] == (term.phase_offset[0]/4 if hasattr(term, "phase_offset") else 0)
         torch.testing.assert_close(before[1:], term.reference.phase[1:])
         env.reset()
         args.output.mkdir(parents=True, exist_ok=True)
         export_deploy_cfg(env, str(args.output))
-        if args.check_ppo_export:
+        if args.check_ppo_export or args.rsl_checkpoint:
             from rsl_rl.runners import OnPolicyRunner
 
             from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, export_policy_as_jit, export_policy_as_onnx
@@ -97,9 +107,11 @@ def main():
             runner_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
             wrapped = RslRlVecEnvWrapper(env, clip_actions=runner_cfg.clip_actions)
             runner = OnPolicyRunner(wrapped, runner_cfg.to_dict(), log_dir=None, device=env.device)
+            if args.rsl_checkpoint:
+                runner.load(str(args.rsl_checkpoint), load_optimizer=False)
             network = runner.alg.policy
             normalizer = getattr(network, "actor_obs_normalizer", None)
-            export_dir = str(args.output / "untrained_export")
+            export_dir = str(args.output / ("trained_export" if args.rsl_checkpoint else "untrained_export"))
             export_policy_as_jit(network, normalizer=normalizer, path=export_dir, filename="policy.pt")
             export_policy_as_onnx(network, normalizer=normalizer, path=export_dir, filename="policy.onnx")
             reloaded = torch.jit.load(str(Path(export_dir) / "policy.pt"), map_location=env.device)
@@ -111,6 +123,8 @@ def main():
                 assert actual.shape == (args.num_envs, 12) and torch.isfinite(actual).all()
             print("PPO/EXPORT PASS: runner, actor forward, JIT parity, ONNX serialization; no learning", flush=True)
         policy = torch.jit.load(str(args.checkpoint), map_location=env.device).eval() if args.checkpoint else None
+        if args.rsl_checkpoint:
+            policy = reloaded.eval()
         # Cover zero, translating, combined turning, and pure-yaw commands.
         cases = torch.tensor(
             [
@@ -125,6 +139,14 @@ def main():
             ],
             device=env.device,
         )
+        if args.walking_commands:
+            cases = torch.tensor(
+                [[0, 0, 0], [0.4, 0, 0], [-0.4, 0, 0], [0, 0.25, 0],
+                 [0, -0.25, 0], [0, 0, 1], [0, 0, -1], [0.3, 0.15, 0.5]],
+                device=env.device,
+            )
+        if args.task in ("Unitree-Go2-Conga-March", "Unitree-Go2-Conga-March-Balanced", "Unitree-Go2-Conga-Kick-Test", "Unitree-Go2-Conga-Kick-Intro", "Unitree-Go2-Conga-Kick-Refine"):
+            cases = torch.zeros((1,3),device=env.device)
         command = cases[torch.arange(args.num_envs, device=env.device) % len(cases)]
         total_falls = 0
         with (args.output / "rollout.csv").open("w", newline="") as stream:
@@ -150,7 +172,12 @@ def main():
                     "touchdown_FL_FR_RL_RR",
                     "touchdown_distance_FL_FR_RL_RR_s",
                     "slip_mps",
+                    "actual_vx_mps",
+                    "actual_vy_mps",
+                    "actual_yaw_radps",
+                    "foot_clearance_FL_FR_RL_RR_m",
                     "fall",
+                    "phase_offset_s",
                 ]
             )
             for step in range(args.steps):
@@ -165,6 +192,10 @@ def main():
                         else torch.zeros(args.num_envs, env.action_manager.total_action_dim, device=env.device)
                     )
                     obs, rewards, terminated, truncated, _ = env.step(actions)
+                    if args.task in ("Unitree-Go2-Conga-March", "Unitree-Go2-Conga-March-Balanced", "Unitree-Go2-Conga-Kick-Test", "Unitree-Go2-Conga-Kick-Intro", "Unitree-Go2-Conga-Kick-Refine"):
+                        assert not term.command.any()
+                        torch.testing.assert_close(env.reward_manager._step_reward.sum(-1)*env.step_dt,
+                                                   rewards,atol=1e-5,rtol=1e-5)
                     assert torch.isfinite(rewards).all()
                     assert all(torch.isfinite(value).all() for value in obs.values())
                     assert (term.command[:, :2].norm(dim=-1) <= 1.25 + 1e-6).all()
@@ -198,8 +229,12 @@ def main():
                                 (term.robot.data.body_lin_vel_w[i, term.foot_ids, :2].norm(dim=-1) * contact[i]).sum()
                                 / contact[i].sum().clamp_min(1)
                             ),
+                            float(term.robot.data.root_lin_vel_b[i, 0]),
+                            float(term.robot.data.root_lin_vel_b[i, 1]),
+                            float(term.robot.data.root_ang_vel_b[i, 2]),
+                            height[i].tolist(),
                         ]
-                        writer.writerow([step, i, *([""] * len(physical) if done else physical), bool(terminated[i])])
+                        writer.writerow([step, i, *([""] * len(physical) if done else physical), bool(terminated[i]), float(term.phase_offset[i]) if hasattr(term,"phase_offset") else 0.])
         print(
             f"SIMULATION PASS: {args.steps} steps x {args.num_envs} envs; falls={total_falls}; output={args.output}",
             flush=True,

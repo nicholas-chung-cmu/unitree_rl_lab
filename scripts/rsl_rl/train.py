@@ -40,6 +40,7 @@ parser.add_argument("--num_envs", type=int, default=None, help="Number of enviro
 parser.add_argument("--task", type=str, default=None, choices=tasks, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
 parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
+parser.add_argument("--checkpoint_path", type=str, help="Explicit checkpoint path for cross-stage resume (requires --resume).")
 parser.add_argument(
     "--distributed", action="store_true", default=False, help="Run training with multiple GPUs or nodes."
 )
@@ -163,7 +164,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     # save resume path before creating a new log_dir
     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
-        resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
+        resume_path = (os.path.abspath(args_cli.checkpoint_path) if args_cli.checkpoint_path else
+                       get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint))
 
     # wrap for video recording
     if args_cli.video:
@@ -181,7 +183,32 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # create runner from rsl-rl
-    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    runner_class = OnPolicyRunner
+    if args_cli.task in ("Unitree-Go2-Conga-March", "Unitree-Go2-Conga-March-Balanced"):
+        from unitree_rl_lab.utils.march_training import MarchRunner
+        runner_class = MarchRunner
+    if args_cli.task in ("Unitree-Go2-Conga-Early", "Unitree-Go2-Conga-History", "Unitree-Go2-Conga-Pause"):
+        from unitree_rl_lab.utils.early_training import EarlyRunner
+        runner_class = EarlyRunner
+    if args_cli.task in ("Unitree-Go2-Conga-Cadence-Start", "Unitree-Go2-Conga-Cadence-Paired"):
+        from unitree_rl_lab.utils.cadence_training import CadenceRunner
+        runner_class = CadenceRunner
+    if args_cli.task == "Unitree-Go2-Conga-Duration":
+        from unitree_rl_lab.utils.duration_training import DurationRunner
+        runner_class = DurationRunner
+    if args_cli.task == "Unitree-Go2-Conga-Duration-Strong":
+        from unitree_rl_lab.utils.duration_training import DurationStrongRunner
+        runner_class = DurationStrongRunner
+    if args_cli.task == "Unitree-Go2-Conga-Duration-Average":
+        from unitree_rl_lab.utils.duration_training import DurationAverageRunner
+        runner_class = DurationAverageRunner
+    if args_cli.task == "Unitree-Go2-Conga-Kick-Intro":
+        from unitree_rl_lab.utils.kick_training import KickRunner
+        runner_class = KickRunner
+    if args_cli.task == "Unitree-Go2-Conga-Kick-Refine":
+        from unitree_rl_lab.utils.kick_training import KickRefineRunner
+        runner_class = KickRefineRunner
+    runner = runner_class(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
     # write git state to logs
     runner.add_git_repo_to_log(__file__)
     # load the checkpoint

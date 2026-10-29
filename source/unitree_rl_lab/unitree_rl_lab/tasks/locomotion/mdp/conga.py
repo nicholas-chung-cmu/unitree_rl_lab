@@ -169,6 +169,19 @@ class CongaVelocityCommandCfg(UniformVelocityCommandCfg):
     rel_turning_envs: float = 0.15
 
 
+def basic_conga_features(env):
+    """Same ten feature slots as later stages, with stock velocity commands.
+
+    Clock advances at 120 BPM even while standing; it has no reward target yet.
+    Episode resets reset phase, whereas velocity resampling leaves it unchanged.
+    """
+    steps = getattr(env, "episode_length_buf", torch.zeros(env.num_envs, device=env.device))
+    ref = generate_reference(steps * env.step_dt, env.cfg.commands.base_velocity.reference)
+    command = env.command_manager.get_command("base_velocity")
+    scales = torch.zeros(env.num_envs, 2, device=env.device)
+    return torch.cat((ref.phase_features(), command, scales), dim=-1)
+
+
 def conga_features(env):
     term = env.command_manager.get_term("base_velocity")
     ref = term.reference
