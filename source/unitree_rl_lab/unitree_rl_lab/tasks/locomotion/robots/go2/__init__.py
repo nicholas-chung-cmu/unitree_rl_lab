@@ -197,3 +197,43 @@ gym.register(
         'rsl_rl_cfg_entry_point':'unitree_rl_lab.tasks.locomotion.agents.conga_ppo_cfg:CongaKickTrainPPORunnerCfg',
     },
 )
+
+# Separate architecture and checkpoint family; preserve every legacy registration.
+for suffix, config in (
+    ("Step", "HierarchicalStepEnvCfg"),
+    ("Raised-Step", "HierarchicalRaisedStepEnvCfg"),
+    ("Kick", "HierarchicalKickEnvCfg"),
+    ("Transition", "HierarchicalTransitionEnvCfg"),
+    ("Timing", "HierarchicalTimingEnvCfg"),
+    ("Dance", "HierarchicalDanceEnvCfg"),
+):
+    gym.register(
+        id=f"Unitree-Go2-Hierarchical-{suffix}",
+        entry_point="unitree_rl_lab.tasks.locomotion.skills.adapter:SkillEnv",
+        disable_env_checker=True,
+        kwargs={
+            "env_cfg_entry_point": f"{__name__}.hierarchical_env_cfg:{config}",
+            "play_env_cfg_entry_point": f"{__name__}.hierarchical_env_cfg:{config}",
+            "rsl_rl_cfg_entry_point": "unitree_rl_lab.tasks.locomotion.agents.hierarchical_ppo_cfg:HierarchicalPPORunnerCfg",
+        },
+    )
+
+# CPG residual policies have their own reference, observation and checkpoint family.
+gym.register(
+    id='Unitree-Go2-CPG-Walk',entry_point='isaaclab.envs:ManagerBasedRLEnv',disable_env_checker=True,
+    kwargs={
+        'env_cfg_entry_point':f'{__name__}.cpg_env_cfg:CPGWalkEnvCfg',
+        'play_env_cfg_entry_point':f'{__name__}.cpg_env_cfg:CPGWalkEnvCfg',
+        'rsl_rl_cfg_entry_point':'unitree_rl_lab.tasks.locomotion.agents.cpg_ppo_cfg:CPGPPORunnerCfg',
+    },
+)
+
+for suffix,config in [('Timing','CPGTimingEnvCfg'),('Travel','CPGTravelEnvCfg'),('Dance','CPGDanceEnvCfg'),('Kick-Hold','CPGKickHoldEnvCfg'),('Bounce','CPGBounceEnvCfg')]:
+    gym.register(
+        id=f'Unitree-Go2-CPG-{suffix}',entry_point='isaaclab.envs:ManagerBasedRLEnv',disable_env_checker=True,
+        kwargs={
+            'env_cfg_entry_point':f'{__name__}.cpg_env_cfg:{config}',
+            'play_env_cfg_entry_point':f'{__name__}.cpg_env_cfg:{config}',
+            'rsl_rl_cfg_entry_point':'unitree_rl_lab.tasks.locomotion.agents.cpg_ppo_cfg:CPGPPORunnerCfg',
+        },
+    )

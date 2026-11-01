@@ -27,6 +27,30 @@ def export_deploy_cfg(env: ManagerBasedRLEnv, log_dir):
     cfg = {}  # noqa: SIM904
     cfg["joint_ids_map"] = joint_ids_map
     cfg["step_dt"] = env.cfg.sim.dt * env.cfg.decimation
+    if hasattr(env.cfg.commands, "cpg"):
+        from dataclasses import asdict
+        cfg["cpg_residual"] = {
+            "version": 1, "gait": asdict(env.cfg.commands.cpg.gait),
+            "equivariant_actor": getattr(env.cfg, "equivariant_actor", False),
+            "action": "q_nominal + residual_scale * tanh(policy_action)",
+            "hardware_compatible": False,
+            "requires": ["scheduler", "IK", "contact estimator", "state estimator", "validated recovery"],
+        }
+    if hasattr(env.cfg.commands, "skill"):
+        from dataclasses import asdict
+
+        cfg["hierarchical_skills"] = {
+            "observation_version": 1,
+            "specification": asdict(env.cfg.commands.skill.skill),
+            "stage": env.cfg.commands.skill.stage,
+            "foot_order": ["FL_foot", "FR_foot", "RL_foot", "RR_foot"],
+            "requires_goal_planner_and_contact_estimator": True,
+            "hardware_compatible": False,
+            "skill_features": ["skill_one_hot:3", "selected_feet:4", "goal:3", "remaining_goal:3",
+                               "target_feet_body_heading_frame:12", "reference_error_heading_frame:12",
+                               "contacts:4", "entry_raised:4", "current_raised:4", "duration:1",
+                               "remaining_time:1", "progress:1", "body_height_velocity_target:2", "preparing:1"],
+        }
     if hasattr(env.cfg.commands, "base_velocity") and hasattr(env.cfg.commands.base_velocity, "reference"):
         from dataclasses import asdict
 
