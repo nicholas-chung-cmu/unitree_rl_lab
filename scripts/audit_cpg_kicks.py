@@ -14,7 +14,9 @@ import numpy as np
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('directory',type=Path)
 p.add_argument('--swing',type=float,default=.2);p.add_argument('--timing',type=float,default=.06)
 p.add_argument('--group',type=int,help='Audit only one evaluation-command group')
-a=p.parse_args();x=dict(np.load(a.directory/'traces.npz'));beat=2/3;dt=.02
+a=p.parse_args();x=dict(np.load(a.directory/'traces.npz'));
+if 'truth_contact' in x:x['contact']=x['truth_contact']
+beat=2/3;dt=.02
 out={leg:{'expected':0,'relaxed_endpoint':0,'timely_endpoint':0,'steady_hold':0,'direct_postkick_step':0,'qualified_chain':0,'delays':[],'hold_valid_fractions':[]} for leg in ('FL','FR')}
 q=x['joints'].reshape(*x['joints'].shape[:2],4,3)
 if 'feet_body' in x:feet=x['feet_body']

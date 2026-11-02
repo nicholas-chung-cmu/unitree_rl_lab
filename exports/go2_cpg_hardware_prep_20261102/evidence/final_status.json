@@ -1,0 +1,24 @@
+{
+  "status": "complete",
+  "started_utc": "2026-11-02 06:06:45 UTC",
+  "finished_utc": "2026-11-02T07:57:57.078487+00:00",
+  "elapsed_minutes": 111.20130811134975,
+  "deadline_utc": "2026-11-02 12:06:45 UTC",
+  "within_budget": true,
+  "training_updates": 1900,
+  "training_transitions": 186777600,
+  "selected_policy": "preserved timing+300/model_299",
+  "onnx_sha256": "bfe0617876fd09abc972161193004974975f402927119023e707ac0037df3051",
+  "hardware_tested": false,
+  "physical_actions": false,
+  "autonomous_jobs_remaining": false,
+  "gpu_lock_free": true,
+  "export": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/exports/go2_cpg_hardware_prep_20261102",
+  "remaining_real_checks": [
+    "native Orin/ROS build and load timing",
+    "per-foot physical contact calibration",
+    "motor response/payload/COM measurements",
+    "supported real motion and independent stop checks"
+  ],
+  "end_reason": "Preparation, simulation selection, integration verification and portable handoff complete; further unsupported fine-tuning did not improve transfer."
+}

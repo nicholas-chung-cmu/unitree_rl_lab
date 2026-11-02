@@ -60,9 +60,50 @@ def main():
     cfg.equivariant_actor=settings.get('equivariant_actor',False)
     for k,v in settings.get('gait',{}).items():setattr(cfg.commands.cpg.gait,k,v)
     cfg.commands.cpg.gait.__post_init__()
+    if settings.get('measured_policy',False):
+        from isaaclab.managers import ObservationGroupCfg,ObservationTermCfg,RewardTermCfg
+        from isaaclab.utils import configclass
+        from unitree_rl_lab.tasks.locomotion.cpg.adapter import measured_policy_observation
+        from unitree_rl_lab.tasks.locomotion.cpg.dance_adapter import dance_reward
+        @configclass
+        class MeasuredPolicyCfg(ObservationGroupCfg):
+            measured=ObservationTermCfg(func=measured_policy_observation,params={'extra_feedback':settings.get('extra_feedback',False)})
+            concatenate_terms=True
+            enable_corruption=False
+        cfg.observations.policy=MeasuredPolicyCfg()
+        cfg.cpg_extra_feedback=settings.get('extra_feedback',False)
+        cfg.commands.cpg.sensor_uncertainty=settings.get('sensor_uncertainty',{})
+        for component in ('hold_stationary','kick_stationary','neutral_stationary','support_margin'):
+            setattr(cfg.rewards,component,RewardTermCfg(func=dance_reward,weight=0.,params={'component':component}))
+    cfg.cpg_actuator_profile=settings.get('actuator_profile','legacy_go2hv')
     for k,v in settings.get('rewards',{}).items():getattr(cfg.rewards,k).weight=v
     for k,v in settings.get('ppo',{}).items():setattr(agent.algorithm,k,v)
     for k,v in settings.get('actuator',{}).items():setattr(cfg.scene.robot.actuators['GO2HV'],k,v)
+    if settings.get('transfer_randomization',False):
+        from isaaclab.managers import EventTermCfg,SceneEntityCfg
+        import isaaclab.envs.mdp as events
+        cfg.events.cpg_material=EventTermCfg(func=events.randomize_rigid_body_material,mode='startup',params={
+            'asset_cfg':SceneEntityCfg('robot',body_names='.*'),'static_friction_range':(.4,1.),
+            'dynamic_friction_range':(.4,1.),'restitution_range':(0.,0.),'num_buckets':64,'make_consistent':True})
+        cfg.events.cpg_mass=EventTermCfg(func=events.randomize_rigid_body_mass,mode='startup',params={
+            'asset_cfg':SceneEntityCfg('robot',body_names='.*'),'mass_distribution_params':(.95,1.05),'operation':'scale','recompute_inertia':True})
+        armature_range=tuple(settings.get('transfer_armature_range',(0.,.015)))
+        if len(armature_range)!=2 or not np.isfinite(armature_range).all() or not 0<=armature_range[0]<=armature_range[1]:
+            raise ValueError('Invalid transfer armature range')
+        cfg.events.cpg_armature=EventTermCfg(func=events.randomize_joint_parameters,mode='startup',params={
+            'asset_cfg':SceneEntityCfg('robot',joint_names='.*'),'armature_distribution_params':armature_range,'operation':'abs'})
+        cfg.events.cpg_gains=EventTermCfg(func=events.randomize_actuator_gains,mode='startup',params={
+            'asset_cfg':SceneEntityCfg('robot',joint_names='.*'),'stiffness_distribution_params':(.9,1.1),
+            'damping_distribution_params':(.9,1.1),'operation':'scale'})
+    if settings.get('robust_physics',False):
+        from isaaclab.managers import EventTermCfg,SceneEntityCfg
+        import isaaclab.envs.mdp as events
+        from unitree_rl_lab.tasks.locomotion.cpg.adapter import randomize_passive_actuator
+        cfg.events.cpg_passive=EventTermCfg(func=randomize_passive_actuator,mode='startup')
+        cfg.events.cpg_com=EventTermCfg(func=events.randomize_rigid_body_com,mode='startup',params={
+            'asset_cfg':SceneEntityCfg('robot',body_names='base'),'com_range':{'x':(-.008,.008),'y':(-.005,.005),'z':(-.005,.005)}})
+        cfg.events.push_robot=EventTermCfg(func=events.push_by_setting_velocity,mode='interval',interval_range_s=(12.,18.),
+            params={'velocity_range':{'x':(-.05,.05),'y':(-.05,.05)}})
     if settings.get('symmetry_mirror_loss',0):
         if a.task not in ('Unitree-Go2-CPG-Dance','Unitree-Go2-CPG-Kick-Hold','Unitree-Go2-CPG-Bounce'):
             raise ValueError('Musical-phase reflection is qualified for the discrete dance task only')
@@ -70,7 +111,7 @@ def main():
         agent.algorithm.symmetry_cfg=RslRlSymmetryCfg(use_data_augmentation=False,use_mirror_loss=True,
             mirror_loss_coeff=settings['symmetry_mirror_loss'],
             data_augmentation_func='unitree_rl_lab.tasks.locomotion.cpg.symmetry:augment')
-    if not a.iterations:cfg.observations.policy.enable_corruption=settings.get('observation_noise',False)
+    if not a.iterations and not settings.get('measured_policy',False):cfg.observations.policy.enable_corruption=settings.get('observation_noise',False)
     cfg.episode_length_s=settings.get('episode_length_s',cfg.episode_length_s)
     if a.video:
         cfg.viewer.resolution=(960,720);cfg.viewer.eye=(1.7,1.7,1.1);cfg.viewer.lookat=(0.,0.,.25)
@@ -99,15 +140,39 @@ def main():
             raise ValueError('This checkpoint requires equivariant_actor in its settings')
     if source_equivariant:wrap_actor()
     if a.checkpoint:
-        runner.load(str(a.checkpoint))
-        if a.iterations:
+        if settings.get('fresh_optimizer',False):
+            checkpoint=torch.load(a.checkpoint,map_location='cpu',weights_only=False)
+            old=checkpoint['model_state_dict'];new=runner.alg.policy.state_dict()
+            for key,value in old.items():
+                if key.endswith('observation_permutation') or key.endswith('observation_sign'):continue
+                if key=='actor.base.0.weight' and value.shape!=new[key].shape:
+                    if value.shape[1]!=75 or new[key].shape[1]!=81:raise ValueError('Only explicit 75->81 warm start is supported')
+                    new[key].zero_();new[key][:,:75]=value
+                else:
+                    if key not in new or new[key].shape!=value.shape:raise ValueError('Incompatible checkpoint field '+key)
+                    new[key]=value
+            runner.alg.policy.load_state_dict(new)
+            runner.current_learning_iteration=0
+        else:runner.load(str(a.checkpoint))
+        if a.iterations and not settings.get('fresh_optimizer',False):
             runner.current_learning_iteration+=1
             runner.alg.learning_rate=runner.alg.optimizer.param_groups[0]['lr']
     if cfg.equivariant_actor and not source_equivariant:wrap_actor()
+    torch.manual_seed(a.seed+1000)
+    if torch.cuda.is_available():torch.cuda.manual_seed_all(a.seed+1000)
     dump_yaml(str(a.output/'env.yaml'),cfg);dump_yaml(str(a.output/'agent.yaml'),agent)
     export_deploy_cfg(raw,str(a.output))
     obs=wrapped.get_observations()
-    assert obs['policy'].shape[-1]==75,obs['policy'].shape
+    armature=c.robot.root_physx_view.get_dof_armatures().cpu().numpy()
+    actuator=c.robot.actuators['GO2HV']
+    write('actuator_readback.json',{k:[float(getattr(actuator,k).min()),float(getattr(actuator,k).max())] for k in ['stiffness','damping','_friction_static','_friction_dynamic','_effort_y1','_effort_y2','_velocity_x1','_velocity_x2']})
+    write('physics_readback.json',{'armature_min':float(armature.min()),'armature_max':float(armature.max()),
+                                 'armature_mean':float(armature.mean()),'armature_std':float(armature.std()),'actuator_profile':cfg.cpg_actuator_profile,'configured_actuator':settings.get('actuator',{}),'sensor_uncertainty':settings.get('sensor_uncertainty',{}),'actor_observations':int(obs['policy'].shape[-1])})
+    if settings.get('transfer_randomization',False):
+        assert armature.min()>=armature_range[0]-1e-7 and armature.max()<=armature_range[1]+1e-7
+    elif 'armature' in settings.get('actuator',{}):
+        assert np.allclose(armature,settings['actuator']['armature'],atol=1e-7)
+    assert obs['policy'].shape[-1]==(81 if settings.get('extra_feedback',False) else 75),obs['policy'].shape
     assert wrapped.num_actions==12
     start=time.monotonic()
     if a.iterations:
@@ -136,6 +201,7 @@ def main():
         policy=runner.get_inference_policy(device=raw.device) if a.checkpoint else None
         body_masses=c.robot.root_physx_view.get_masses().to(raw.device)
         records=[];falls=torch.zeros(a.num_envs,device=raw.device);resets=falls.clone()
+        truth_contact=torch.zeros(a.num_envs,4,dtype=torch.bool,device=raw.device)
         totals={k:torch.zeros(a.num_envs,device=raw.device) for k in c.metrics}
         previous={k:v.clone() for k,v in c.metrics.items()}
         maxik=0.;maxfk=0.;minheight=1.;nan=False
@@ -154,11 +220,19 @@ def main():
                 slip=(raw.scene['robot'].data.body_lin_vel_w[:,c.foot_ids,:2].norm(dim=-1)*rec['contact']).sum(-1)/rec['contact'].sum(-1).clamp_min(1)
                 height=raw.scene['robot'].data.root_pos_w[:,2]-raw.scene.env_origins[:,2]
                 records.append({k:v.detach().cpu().numpy() for k,v in rec.items()})
+                physical_force=c.sensor.data.net_forces_w[:,c.sensor_ids].norm(dim=-1)
+                truth_contact=torch.where(truth_contact,physical_force>2.,physical_force>=5.)
+                truth_contact[done.bool()]=False
+                records[-1]['truth_contact']=truth_contact.cpu().numpy().copy()
+                records[-1]['truth_force']=physical_force.cpu().numpy().copy()
+                records[-1]['estimated_sole']=records[-1]['sole'].copy()
+                records[-1]['sole']=(c.robot.data.body_pos_w[:,c.foot_ids,2]-.022-raw.scene.env_origins[:,2,None]).cpu().numpy().copy()
                 records[-1]['slip']=slip.cpu().numpy();records[-1]['height']=height.cpu().numpy()
                 records[-1]['fall']=raw.reset_terminated.cpu().numpy().copy()
                 records[-1]['reset']=done.cpu().numpy().copy()
                 records[-1]['gravity']=c.robot.data.projected_gravity_b.cpu().numpy().copy()
                 records[-1]['body_velocity']=c.robot.data.root_lin_vel_w.cpu().numpy().copy()
+                records[-1]['body_position']=(c.robot.data.root_pos_w-raw.scene.env_origins).cpu().numpy().copy()
                 records[-1]['body_velocity_local']=c.robot.data.root_lin_vel_b.cpu().numpy().copy()
                 records[-1]['target_velocity']=getattr(c,'travel_velocity',c.velocity).cpu().numpy().copy()
                 records[-1]['operator_velocity']=c.requested_velocity.cpu().numpy().copy()
@@ -185,9 +259,12 @@ def main():
         summary={'checkpoint':str(a.checkpoint) if a.checkpoint else None,'steps':a.steps,'num_envs':a.num_envs,
                  'seconds':a.steps*raw.step_dt,'elapsed':time.monotonic()-start,'max_ik_error_m':maxik,
                  'max_physical_fk_error_m':maxfk,'minimum_body_height_m':minheight,'falls':int(falls.sum()),'resets':int(resets.sum()),
-                 'stable_fraction':float((falls==0).float().mean()),'observation_action_dimensions':[75,90,12],'cases':{}}
+                 'stable_fraction':float((falls==0).float().mean()),'observation_action_dimensions':[int(obs['policy'].shape[-1]),int(obs['critic'].shape[-1]),12],'cases':{}}
         summary['evaluation_command_period_s']=command_period
         summary['command_cases']=cases.cpu().tolist()
+        from cpg_tracking_metrics import tracking_metrics
+        summary['travel_only_tracking']=tracking_metrics(data)
+        summary['legacy_case_velocity_metrics_include_pauses']=True
         for i,v in enumerate(cases.cpu().tolist()):
             mask=group.cpu().numpy()==i
             if not mask.any():continue

@@ -1,0 +1,16 @@
+{
+  "onnx_sha256": "3522901d3030314709976fa3aefe9f77b0d52d666c5ac9a33ae19e557e2b4fd2",
+  "joystick_limits": [
+    0.08,
+    0.06,
+    0.15
+  ],
+  "jit_sha256": "97f8e1b105ff51170032e52ed0be544276301b06372983ee994957fc72ed87dd",
+  "checkpoint_sha256": "88a8f88d8d99f37149e2e8cc04288042204e092e464fca8b05526a0315ee8b2d",
+  "onnx_export": "policy.onnx",
+  "jit_export": "policy.pt",
+  "deploy_metadata": "deploy.yaml",
+  "settings": "settings.json",
+  "hardware_compatible": false,
+  "qualification": "Simulation and ROS2 shadow candidate; see included qualification report for measured limits"
+}

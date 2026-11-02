@@ -31,6 +31,9 @@ def export_deploy_cfg(env: ManagerBasedRLEnv, log_dir):
         from dataclasses import asdict
         cfg["cpg_residual"] = {
             "version": 1, "gait": asdict(env.cfg.commands.cpg.gait),
+            "observation_dim": 81 if getattr(env.cfg,'cpg_extra_feedback',False) else 75,
+            "extra_feedback": ["estimated_body_vx", "estimated_body_vy", "contact_FL", "contact_FR", "contact_RL", "contact_RR"] if getattr(env.cfg,'cpg_extra_feedback',False) else [],
+            "actuator_profile": getattr(env.cfg,'cpg_actuator_profile','legacy_go2hv'),
             "equivariant_actor": getattr(env.cfg, "equivariant_actor", False),
             "action": "q_nominal + residual_scale * tanh(policy_action)",
             "hardware_compatible": False,

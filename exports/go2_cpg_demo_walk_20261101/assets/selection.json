@@ -1,0 +1,16 @@
+{
+  "onnx_sha256": "18dc2191db59b2b23af0f236727f4f585b03577c10c53357611bbb2f44fdbdd1",
+  "joystick_limits": [
+    0.12,
+    0.08,
+    0.15
+  ],
+  "jit_sha256": "3f4f21a0bf04c0f20c85f4ed6cda670caa39b564ab86eb7f708acfbeaa6f9d7a",
+  "checkpoint_sha256": "c2432d37e0be1805035dc01425b9f7e0f3172595413412dff681dd64bffbc3b5",
+  "onnx_export": "policy.onnx",
+  "jit_export": "policy.pt",
+  "deploy_metadata": "deploy.yaml",
+  "settings": "settings.json",
+  "hardware_compatible": false,
+  "qualification": "Walking-only simulation candidate: continuous diagonal stepping without kicks or bounce; tested flat-ground travel and scripted commands. Hardware operation is not qualified."
+}

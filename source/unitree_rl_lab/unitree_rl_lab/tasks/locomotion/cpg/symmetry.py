@@ -16,7 +16,7 @@ def mirror_joints(x):
 
 
 def mirror_observation(x):
-    if x.shape[-1] not in (75,90):raise ValueError('Unsupported CPG observation version')
+    if x.shape[-1] not in (75,81,90):raise ValueError('Unsupported CPG observation version')
     y=x.clone();critic=x.shape[-1]==90
     offset=3 if critic else 0
     if critic:y[...,1]*=-1  # polar linear velocity
@@ -33,6 +33,9 @@ def mirror_observation(x):
     y[...,start+21:start+23]*=-1  # vy and yaw command
     y[...,start+23:start+27]=x[...,start+23:start+27][...,list(FOOT_SWAP)]
     y[...,start+30]=x[...,start+31];y[...,start+31]=x[...,start+30]  # raised FL/FR
+    if x.shape[-1]==81:
+        y[...,76]*=-1
+        y[...,77:81]=x[...,77:81][...,list(FOOT_SWAP)]
     return y
 
 
@@ -45,7 +48,7 @@ class SagittalActor(torch.nn.Module):
     """
     def __init__(self,base):
         super().__init__();self.base=base
-        observation=mirror_observation(torch.arange(1,76,dtype=torch.float32))
+        observation=mirror_observation(torch.arange(1,base[0].in_features+1,dtype=torch.float32))
         action=mirror_joints(torch.arange(1,13,dtype=torch.float32))
         self.register_buffer('observation_permutation',observation.abs().long()-1)
         self.register_buffer('observation_sign',observation.sign())

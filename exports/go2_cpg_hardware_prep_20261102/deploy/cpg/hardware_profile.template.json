@@ -1,0 +1,24 @@
+{
+  "robot_type": "go2",
+  "hardware_enabled": false,
+  "contact_calibrated": false,
+  "timing_verified": false,
+  "policy_sha256": "",
+  "force_calibration": {
+    "order": "FL,RL,FR,RR",
+    "measured": false,
+    "offset": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "notes": "UNMEASURED TEMPLATE. Do not enable until hardware contacts, startup, stop, gains, mapping and timing are checked under a harness. No physical validation performed."
+}

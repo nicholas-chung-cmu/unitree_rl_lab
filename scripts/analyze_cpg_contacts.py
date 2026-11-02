@@ -13,7 +13,9 @@ p.add_argument('directory',type=Path)
 p.add_argument('--swing',type=float,default=.30)
 p.add_argument('--tolerance',type=float,default=.10)
 p.add_argument('--dance',action='store_true')
-a=p.parse_args();x=dict(np.load(a.directory/'traces.npz'));dt=.02;beat=2/3
+a=p.parse_args();x=dict(np.load(a.directory/'traces.npz'));
+if 'truth_contact' in x:x['contact']=x['truth_contact']
+dt=.02;beat=2/3
 
 def runs(mask):
     z=np.r_[False,mask,False].astype(int);return list(zip(np.flatnonzero(np.diff(z)==1),np.flatnonzero(np.diff(z)==-1)))

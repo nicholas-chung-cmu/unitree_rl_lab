@@ -1,0 +1,16 @@
+{
+  "onnx_sha256": "7321470cefffcbe57b91e893909cea3c79822d833d653283e4d6368a69820f68",
+  "joystick_limits": [
+    0.12,
+    0.06,
+    0.1
+  ],
+  "jit_sha256": "18bdaa42990948f8fc1ce2e613af4c27b3a4b3aa245d671335dd0b335274639b",
+  "checkpoint_sha256": "2dbb4486a3f83816f278cf080faaa0fe6ed54df3ac195f9ca38191cf3f5cb10d",
+  "onnx_export": "policy.onnx",
+  "jit_export": "policy.pt",
+  "deploy_metadata": "deploy.yaml",
+  "settings": "settings.json",
+  "hardware_compatible": false,
+  "qualification": "Experimental forward-travel dance only; fails strict cross-simulator per-leg kick qualification. Preserve original dance and qualified walking as defaults."
+}

@@ -1,0 +1,33 @@
+{
+  "commit": "b986dc4bd663f0662daa43234398c3a5d5b8c73a",
+  "branch": "nick_conga",
+  "submodules": "-0cfde1cf6675db1cc81ae4f26caef56deb576891 external/mocap4ros2_optitrack\n 0606f2cd17aa29179fea02f26b643ed860a473dc external/rbdl-orb (v2.6.0-265-g0606f2c)\n c8a71e281093593f4dcc7bceb3b3b529ff0e36b4 external/unitree_sdk2 (2.0.2-14-gc8a71e2)\n",
+  "files": [
+    "docs/cpg_gazebo.md",
+    "docs/cpg_hardware.md",
+    "quad_msgs/CMakeLists.txt",
+    "quad_msgs/msg/CpgSensorFrame.msg",
+    "quad_simulator/gazebo_plugins/include/gazebo_plugins/controller_plugin.hpp",
+    "quad_simulator/gazebo_plugins/src/controller_plugin.cpp",
+    "quad_simulator/other/sensor_description/models/imu/model.sdf",
+    "quad_utils/CMakeLists.txt",
+    "quad_utils/launch/quad_cpg_gazebo.py",
+    "quad_utils/launch/quad_cpg_hardware.py",
+    "quad_utils/launch/quad_gazebo.py",
+    "quad_utils/launch/robot_bringup.py",
+    "quad_utils/launch/robot_driver.py",
+    "robot_driver/CMakeLists.txt",
+    "robot_driver/include/robot_driver/controllers/cpg_command_guard.hpp",
+    "robot_driver/include/robot_driver/controllers/cpg_controller.hpp",
+    "robot_driver/include/robot_driver/hardware_interfaces/unitree_interface.hpp",
+    "robot_driver/include/robot_driver/robot_driver.hpp",
+    "robot_driver/src/hardware_interfaces/unitree_interface.cpp",
+    "robot_driver/src/robot_driver.cpp",
+    "robot_driver/test/test_cpg_controller.cpp",
+    "robot_driver/test/test_cpg_sensors.cpp",
+    "scripts/cpg_gazebo.py",
+    "scripts/test_cpg_gazebo.py",
+    "scripts/test_cpg_guard.cpp"
+  ],
+  "scope": "Complete working-tree integration, including earlier session changes. Review against the robot branch; git apply --check before applying. No binaries."
+}

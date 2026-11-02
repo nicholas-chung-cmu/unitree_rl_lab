@@ -2,9 +2,20 @@ import importlib.util
 from pathlib import Path
 import sys
 import torch
+import pytest
 
 p=Path(__file__).resolve().parents[1]/'source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/cpg/core.py'
 spec=importlib.util.spec_from_file_location('cpg_core',p);m=importlib.util.module_from_spec(spec);sys.modules[spec.name]=m;spec.loader.exec_module(m)
+
+
+def test_flat_feedback_support_median_and_air_retention():
+    cfg=m.GaitConfig();feet=m.nominal_feet(3,'cpu',cfg)
+    feet[0,:,2]+=torch.tensor([0.,.01,.02,.03])
+    q=m.ik(feet);zero=torch.zeros_like(q)
+    contact=torch.tensor([[True,True,True,True],[True,False,True,True],[False,False,False,False]])
+    sole,velocity,height=m.estimated_foot_feedback(q,zero,torch.zeros(3,3),torch.tensor([[0.,0.,-1.]]).repeat(3,1),contact,torch.tensor([.322,.322,.4]))
+    torch.testing.assert_close(height,torch.tensor([.307,.322,.4]),atol=1e-6,rtol=0)
+    torch.testing.assert_close(velocity,torch.zeros_like(velocity))
 
 
 def test_ik_roundtrip_and_real_limits():
@@ -352,6 +363,13 @@ def test_equivariant_actor_gradient_and_export():
     assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in base.parameters())
     compiled=torch.jit.script(model)
     torch.testing.assert_close(compiled(x),model(x))
+
+
+def test_kick_tracking_scale_rejects_invalid_reward_configuration():
+    assert m.GaitConfig().kick_tracking_std==.03
+    assert m.GaitConfig(kick_tracking_std=.015).kick_tracking_std==.015
+    for scale in (0.,-.01,float('nan'),float('inf')):
+        with pytest.raises(ValueError):m.GaitConfig(kick_tracking_std=scale)
 
 
 def test_balanced_preroll_goals_are_mirrored_and_reset_without_stale_time():

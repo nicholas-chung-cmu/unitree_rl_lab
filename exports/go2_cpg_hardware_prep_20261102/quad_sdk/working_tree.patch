@@ -1,0 +1,1639 @@
+diff --git a/quad_msgs/CMakeLists.txt b/quad_msgs/CMakeLists.txt
+index 4f8440576..3176bae59 100755
+--- a/quad_msgs/CMakeLists.txt
++++ b/quad_msgs/CMakeLists.txt
+@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
+   "msg/BodyForceEstimate.msg"
+   "msg/RobotPlanConstraints.msg"
+   "msg/FootContact.msg"
++  "msg/CpgSensorFrame.msg"
+   "srv/PlanWithConstraints.srv"
+   DEPENDENCIES
+     std_msgs
+diff --git a/quad_simulator/gazebo_plugins/include/gazebo_plugins/controller_plugin.hpp b/quad_simulator/gazebo_plugins/include/gazebo_plugins/controller_plugin.hpp
+index 3d72b8abd..cc8c4b874 100644
+--- a/quad_simulator/gazebo_plugins/include/gazebo_plugins/controller_plugin.hpp
++++ b/quad_simulator/gazebo_plugins/include/gazebo_plugins/controller_plugin.hpp
+@@ -74,6 +74,7 @@ class QuadController : public controller_interface::ControllerInterface {
+   std::map<int, std::pair<int, int>> leg_map_;
+ 
+   /// Torque limits for each motor
++  bool go2hv_envelope_ = false;
+   std::vector<double> torque_lims_;
+   std::vector<double> speed_lims_;
+ 
+diff --git a/quad_simulator/gazebo_plugins/src/controller_plugin.cpp b/quad_simulator/gazebo_plugins/src/controller_plugin.cpp
+index f2bf144d0..da597ea32 100644
+--- a/quad_simulator/gazebo_plugins/src/controller_plugin.cpp
++++ b/quad_simulator/gazebo_plugins/src/controller_plugin.cpp
+@@ -180,6 +180,7 @@ controller_interface::CallbackReturn QuadController::on_init() {
+     node_->declare_parameter<std::string>(leg_ns + ".joints.knee.name", "");
+   }
+   node_->declare_parameter<std::string>("topics.control.joint_command", "");
++  node_->declare_parameter<bool>("motor_limits.go2hv_envelope", false);
+   node_->declare_parameter<std::vector<double>>("motor_limits.torque",
+                                                 std::vector<double>{});
+   node_->declare_parameter<std::vector<double>>("motor_limits.speed",
+@@ -194,6 +195,8 @@ controller_interface::CallbackReturn QuadController::on_init() {
+ 
+ controller_interface::CallbackReturn QuadController::on_configure(
+     const rclcpp_lifecycle::State& /*previous_state*/) {
++  node_->get_parameter("motor_limits.go2hv_envelope", go2hv_envelope_);
++  RCLCPP_INFO(node_->get_logger(), "Go2HV speed envelope: %s", go2hv_envelope_ ? "enabled" : "disabled");
+   std::string urdf_string = get_robot_description();
+   // RCLCPP_INFO(node_->get_logger(), "URDF: %s", urdf_string.c_str());
+ 
+@@ -393,6 +396,14 @@ controller_interface::return_type QuadController::update(
+             ? std::min(std::max(torque_command, motor_model_lb), motor_model_ub)
+             : torque_command;
+ 
++    if (go2hv_envelope_) {
++      const double requested = torque_feedback + torque_ff;
++      const double peak = requested * current_vel > 0.0 ? 20.2 : 23.4;
++      const double scale = std::min(1.0, std::max(0.0, (30.0 - std::abs(current_vel)) / 16.5));
++      const double bound = std::min(torque_lim, peak * scale);
++      torque_command = std::min(bound, std::max(-bound, requested));
++    }
++
+     // Update joint torque
+     // joints_.at(i).setCommand(torque_command);
+     bool success = joint_cmd_handles_[i].set_value(torque_command);
+diff --git a/quad_simulator/other/sensor_description/models/imu/model.sdf b/quad_simulator/other/sensor_description/models/imu/model.sdf
+index 1160d3fcf..b8da5e2d3 100755
+--- a/quad_simulator/other/sensor_description/models/imu/model.sdf
++++ b/quad_simulator/other/sensor_description/models/imu/model.sdf
+@@ -23,7 +23,7 @@
+       <sensor name="imu_sensor" type="imu">
+       <plugin name="gz::sim::systems::Imu" filename="libgz-sim8-imu-system.so"/>
+         <always_on>1</always_on>
+-        <update_rate>1</update_rate>
++        <update_rate>500</update_rate>
+         <visualize>true</visualize>
+       </sensor>
+     </link>
+diff --git a/quad_utils/CMakeLists.txt b/quad_utils/CMakeLists.txt
+index 4024a1715..a61f89424 100755
+--- a/quad_utils/CMakeLists.txt
++++ b/quad_utils/CMakeLists.txt
+@@ -302,4 +302,6 @@ if(BUILD_TESTING)
+   endif()
+ endif()
+ 
++install(PROGRAMS ../scripts/cpg_gazebo.py DESTINATION lib/${PROJECT_NAME})
++
+ ament_package()
+diff --git a/quad_utils/launch/quad_gazebo.py b/quad_utils/launch/quad_gazebo.py
+index 61e3f6431..050755834 100755
+--- a/quad_utils/launch/quad_gazebo.py
++++ b/quad_utils/launch/quad_gazebo.py
+@@ -1,5 +1,5 @@
+ from launch import LaunchDescription
+-from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, IncludeLaunchDescription, ExecuteProcess
++from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, IncludeLaunchDescription, ExecuteProcess, SetEnvironmentVariable
+ from launch.substitutions import LaunchConfiguration, TextSubstitution, EnvironmentVariable
+ from launch.launch_description_sources import PythonLaunchDescriptionSource
+ from launch_ros.actions import PushRosNamespace, Node
+@@ -8,6 +8,26 @@ from launch.substitutions import PathJoinSubstitution
+ 
+ import os
+ import json
++from ament_index_python.packages import get_packages_with_prefixes
++
++def configure_gazebo_paths(context, *args, **kwargs):
++    """Resolve assets/plugins from the active overlay, independent of .bashrc."""
++    packages = get_packages_with_prefixes()
++    resources = []
++    for name, prefix in packages.items():
++        if name.endswith("_description") or name == "gazebo_scripts":
++            models = os.path.join(prefix, "share", name, "models")
++            if os.path.isdir(models):
++                resources.append(models)
++    plugins = [os.path.join(packages["gazebo_plugins"], "lib")]
++    actions = []
++    for variable, paths in (("GZ_SIM_RESOURCE_PATH", resources),
++                            ("GZ_SIM_SYSTEM_PLUGIN_PATH", plugins)):
++        existing = context.environment.get(variable, "")
++        if existing:
++            paths.append(existing)
++        actions.append(SetEnvironmentVariable(variable, os.pathsep.join(paths)))
++    return actions
+ 
+ def launch_ignition_world(context, *args, **kwargs):
+     world_name = LaunchConfiguration('world').perform(context)
+@@ -123,6 +143,11 @@ def launch_robot_group(context, *args, **kwargs):
+                     'robot_type': TextSubstitution(text=robot_type),
+                     'namespace': TextSubstitution(text=robot_ns),
+                     'controller': TextSubstitution(text=controller),
++                    'model_path': TextSubstitution(text=config.get('model_path', LaunchConfiguration('model_path').perform(context))),
++                    'cpg_disable_springs': LaunchConfiguration('cpg_disable_springs'),
++                    'cpg_disable_damping': LaunchConfiguration('cpg_disable_damping'),
++                    'cpg_model_dump': LaunchConfiguration('cpg_model_dump'),
++            'cpg_actuator_profile': LaunchConfiguration('cpg_actuator_profile'),
+                     'init_pose' : TextSubstitution(text=init_pose),
+                     'world': LaunchConfiguration('world'),
+                     'use_sim_time': LaunchConfiguration('use_sim_time')
+@@ -169,6 +194,11 @@ def launch_plot_juggler(context, *args, **kwargs):
+ 
+ def generate_launch_description():
+     declared_args = [
++        DeclareLaunchArgument('cpg_disable_springs', default_value='false'),
++        DeclareLaunchArgument('cpg_disable_damping', default_value='false'),
++        DeclareLaunchArgument('cpg_model_dump', default_value=''),
++        DeclareLaunchArgument('cpg_actuator_profile',default_value='legacy'),
++        DeclareLaunchArgument('model_path', default_value='', description='ONNX policy path; robot_configs model_path overrides this per robot'),
+         DeclareLaunchArgument('world', default_value='flat.sdf', description='SDF world file name to load into simulation'),
+         DeclareLaunchArgument('gui', default_value='true', description='Whether to launch the Gazebo GUI. Defaults on for the single-robot case where the GUI is useful for debugging; the multi-robot launch (quad_multi.py) defaults it off.'),
+         DeclareLaunchArgument('paused', default_value='false', description='Whether to start the simulation in a paused state'),
+@@ -188,6 +218,7 @@ def generate_launch_description():
+     ]
+ 
+     return LaunchDescription(declared_args + [
++        OpaqueFunction(function=configure_gazebo_paths),
+         OpaqueFunction(function=launch_ignition_world),
+         OpaqueFunction(function=launch_obstacles),
+         OpaqueFunction(function=bridge_global_clock),
+diff --git a/quad_utils/launch/robot_bringup.py b/quad_utils/launch/robot_bringup.py
+index 2b5e70cae..cf0a88138 100755
+--- a/quad_utils/launch/robot_bringup.py
++++ b/quad_utils/launch/robot_bringup.py
+@@ -12,6 +12,41 @@ import os
+ import xacro
+ import yaml
+ 
++def cpg_go2_contact_model(sdf, disable_springs=False, disable_damping=False, actuator_profile="legacy"):
++    """Remove duplicate fixed-lumped foot spheres; retain instrumented toes.
++
++    Only used by the CPG Go2 simulation. Inertia, friction and joint dynamics
++    remain unchanged by default. Explicit diagnostic flags disable one passive
++    term at a time; they never change the source SDF.
++    """
++    import xml.etree.ElementTree as ET
++    if actuator_profile not in ('legacy','go2hv_mujoco_v1'):
++        raise ValueError('Unknown CPG actuator profile')
++    root = ET.fromstring(sdf)
++    for leg, name in enumerate(('FL', 'RL', 'FR', 'RR')):
++        lower = root.find(f".//link[@name='lower{leg}']")
++        toe = root.find(f".//link[@name='toe{leg}']/collision[@name='toe{leg}_collision']")
++        duplicate = lower.find(f"collision[@name='lower{leg}_fixed_joint_lump__{name}_foot_collision_3']")
++        if toe is None or duplicate is None:
++            raise RuntimeError('Go2 collision model changed; review CPG contact mapping')
++        if abs(float(toe.findtext('geometry/sphere/radius'))-float(duplicate.findtext('geometry/sphere/radius'))) > 1e-8:
++            raise RuntimeError('Go2 foot spheres differ; cannot deduplicate automatically')
++        lower.remove(duplicate)
++    for joint in root.findall('.//joint'):
++        if joint.get('type') == 'revolute':
++            dynamics = joint.find('axis/dynamics')
++            if actuator_profile == 'go2hv_mujoco_v1':
++                for name,value in [('spring_stiffness','0'),('damping','0.1'),('friction','0.2')]:
++                    element=dynamics.find(name)
++                    if element is None:element=ET.SubElement(dynamics,name)
++                    element.text=value
++            if disable_springs:
++                dynamics.find('spring_stiffness').text = '0'
++            if disable_damping:
++                dynamics.find('damping').text = '0'
++    return ET.tostring(root, encoding='unicode')
++
++
+ def load_robot_params(context, *args, **kwargs):
+     # Load Robot URDF and Robot Centric Parameters
+     robot_type = LaunchConfiguration('robot_type').perform(context)
+@@ -67,6 +102,15 @@ def load_robot_params(context, *args, **kwargs):
+ 
+     controller_config_path = os.path.join(FindPackageShare('quad_utils').perform(context), 'config', config_file)
+ 
++    profile=LaunchConfiguration('cpg_actuator_profile').perform(context)
++    if profile != 'legacy':
++        if profile != 'go2hv_mujoco_v1' or robot_type != 'go2' or LaunchConfiguration('controller').perform(context) != 'cpg':
++            raise RuntimeError('Actuator profile is only supported by Go2 CPG simulation')
++        import tempfile
++        with open(controller_config_path) as handle:config=yaml.safe_load(handle)
++        config.setdefault('/**/joint_controller',{}).setdefault('ros__parameters',{}).setdefault('motor_limits',{})['go2hv_envelope']=True
++        with tempfile.NamedTemporaryFile(mode='w',prefix='cpg_go2hv_',suffix='.yaml',delete=False) as handle:
++            yaml.safe_dump(config,handle);controller_config_path=handle.name
+     # Load URDF and SDF from disk
+     urdf = xacro.process_file(urdf_path).toxml()
+     sdf = xacro.process_file(
+@@ -74,6 +118,15 @@ def load_robot_params(context, *args, **kwargs):
+         mappings={"namespace": namespace, "controller_config_path": controller_config_path},
+     ).toxml()
+ 
++    if robot_type == 'go2' and LaunchConfiguration('controller').perform(context) == 'cpg':
++        sdf = cpg_go2_contact_model(sdf,
++            LaunchConfiguration('cpg_disable_springs').perform(context).lower() == 'true',
++            LaunchConfiguration('cpg_disable_damping').perform(context).lower() == 'true', profile)
++        dump = LaunchConfiguration('cpg_model_dump').perform(context)
++        if dump:
++            from pathlib import Path
++            Path(dump).write_text(sdf)
++
+     return [
+         SetLaunchConfiguration('robot_urdf', urdf),
+         SetLaunchConfiguration('robot_sdf', sdf),
+@@ -218,6 +271,7 @@ def launch_robot_driver(context, *args, **kwargs):
+             launch_arguments={
+                 'robot_type': robot_type,
+                 'controller': controller,
++                'model_path': LaunchConfiguration('model_path'),
+                 'estimator': estimator,
+                 'mocap': 'false',
+                 'is_hardware': 'false',
+@@ -385,6 +439,11 @@ def generate_launch_description():
+         DeclareLaunchArgument('robot_type', default_value = 'spirit', description='Robot type'),
+         DeclareLaunchArgument('namespace', default_value = 'robot_1', description='Robot namespace'),
+         DeclareLaunchArgument('controller', default_value = 'inverse_kinematics', description='Controller type'),
++        DeclareLaunchArgument('cpg_disable_springs', default_value='false'),
++        DeclareLaunchArgument('cpg_disable_damping', default_value='false'),
++        DeclareLaunchArgument('cpg_model_dump', default_value=''),
++        DeclareLaunchArgument('cpg_actuator_profile', default_value='legacy'),
++        DeclareLaunchArgument('model_path', default_value='', description='ONNX policy path; empty keeps YAML setting'),
+         DeclareLaunchArgument('estimator', default_value = 'ekf_filter', description='State estimator type (comp_filter or ekf_filter)'),
+         DeclareLaunchArgument('init_pose', default_value = '-x 2.0 -y 0.0 -z 15', description= "Initial Robot Position"),
+         DeclareLaunchArgument('is_hardware', default_value = 'false', description="Simulation or Hardware"),
+diff --git a/quad_utils/launch/robot_driver.py b/quad_utils/launch/robot_driver.py
+index bdf3272cb..a909c2f4f 100755
+--- a/quad_utils/launch/robot_driver.py
++++ b/quad_utils/launch/robot_driver.py
+@@ -51,7 +51,8 @@ def generate_launch_description():
+     mocap = DeclareLaunchArgument('mocap', default_value='true')
+     logging = DeclareLaunchArgument('logging', default_value='false')
+     controller = DeclareLaunchArgument('controller', default_value='learned')
+-    model_path = DeclareLaunchArgument('model_path', default_value='/root/ros2_ws/src/quad-sdk/robot_driver/models/go2/go2_policy.onnx')
++    model_path = DeclareLaunchArgument('model_path', default_value='',
++                                       description='ONNX policy path; empty keeps robot_driver.model_path from YAML')
+     provider = DeclareLaunchArgument('provider', default_value = "tensorrt")
+     estimator = DeclareLaunchArgument('estimator', default_value="comp_filter")
+     is_hardware = DeclareLaunchArgument('is_hardware', default_value='true')
+@@ -84,8 +85,11 @@ def generate_launch_description():
+             remappings=[('joint_states', 'state/joints')]
+         )
+ 
+-    def _make_robot_driver_node():
+-        return Node(
++    def _make_robot_driver_node(context):
++        policy_path = LaunchConfiguration('model_path').perform(context)
++        policy_override = {'robot_driver.model_path': policy_path} if policy_path else {}
++        extra_file=LaunchConfiguration('extra_params').perform(context)
++        return [Node(
+             package='robot_driver',
+             executable='robot_driver_node',
+             name='robot_driver',
+@@ -94,6 +98,7 @@ def generate_launch_description():
+                 robot_driver_param_file,
+                 robot_driver_topics_file,
+                 robot_specific_param_file,
++                *([extra_file] if extra_file else []),
+                 {
+                     'controller': LaunchConfiguration('controller'),
+                     'is_hardware': LaunchConfiguration('is_hardware'),
+@@ -101,7 +106,7 @@ def generate_launch_description():
+                     'namespace': LaunchConfiguration('namespace'),
+                     'robot_type': LaunchConfiguration('robot_type'),
+                     'estimator_id': LaunchConfiguration('estimator'),
+-                    'model_path': LaunchConfiguration('model_path'),
++                    **policy_override,
+                     'provider': LaunchConfiguration('provider'),
+                     'robot_description': ParameterValue(
+                         LaunchConfiguration('robot_description'),
+@@ -109,7 +114,7 @@ def generate_launch_description():
+                     'use_sim_time': LaunchConfiguration('use_sim_time')
+                 }
+             ]
+-        )
++        )]
+ 
+     # Hardware mode: this launch is invoked directly (no parent
+     # PushRosNamespace) so we push the namespace ourselves. Also brings up
+@@ -118,7 +123,7 @@ def generate_launch_description():
+     hardware_group = GroupAction([
+         PushRosNamespace(LaunchConfiguration('namespace')),
+         _make_rsp_node(),
+-        _make_robot_driver_node(),
++        OpaqueFunction(function=_make_robot_driver_node),
+     ], condition=IfCondition(LaunchConfiguration('is_hardware')))
+ 
+     # Sim mode: robot_bringup.py is included from quad_gazebo.py inside a
+@@ -127,10 +132,11 @@ def generate_launch_description():
+     # NOT push it again. robot_state_publisher is owned by robot_bringup
+     # in this path.
+     sim_group = GroupAction([
+-        _make_robot_driver_node(),
++        OpaqueFunction(function=_make_robot_driver_node),
+     ], condition=UnlessCondition(LaunchConfiguration('is_hardware')))
+ 
+     return LaunchDescription([
++        DeclareLaunchArgument('extra_params',default_value='',description='Optional final parameter YAML override'),
+         robot_type,
+         mocap,
+         logging,
+diff --git a/robot_driver/CMakeLists.txt b/robot_driver/CMakeLists.txt
+index 3746a7015..07ca042cf 100755
+--- a/robot_driver/CMakeLists.txt
++++ b/robot_driver/CMakeLists.txt
+@@ -176,6 +176,14 @@ if(BUILD_TESTING)
+   # the following line skips cpplint (only works in a git repo)
+   # comment the line when this package is in a git repo and when
+   # a copyright and license is added to all source files
++  ament_add_gtest(cpg_controller_test test/test_cpg_controller.cpp)
++  target_link_libraries(cpg_controller_test ${PROJECT_NAME})
++  ament_target_dependencies(cpg_controller_test rclcpp quad_utils)
++
++  ament_add_gtest(cpg_sensor_test test/test_cpg_sensors.cpp)
++  target_link_libraries(cpg_sensor_test ${PROJECT_NAME})
++  ament_target_dependencies(cpg_sensor_test rclcpp quad_utils)
++
+   ament_add_gtest(robot_driver_test
+     test/test_robot_driver.cpp
+   )
+diff --git a/robot_driver/include/robot_driver/hardware_interfaces/unitree_interface.hpp b/robot_driver/include/robot_driver/hardware_interfaces/unitree_interface.hpp
+index 1ecd9c999..bbe6a693f 100644
+--- a/robot_driver/include/robot_driver/hardware_interfaces/unitree_interface.hpp
++++ b/robot_driver/include/robot_driver/hardware_interfaces/unitree_interface.hpp
+@@ -10,6 +10,9 @@
+ #include <unitree/idl/go2/LowState_.hpp>
+ 
+ #include <array>
++#include <atomic>
++#include <chrono>
++#include <thread>
+ #include <mutex>
+ #include <string>
+ #include <vector>
+@@ -47,6 +50,9 @@ class UnitreeInterface : public HardwareInterface {
+   //! Anything else falls back to "go2".
+   explicit UnitreeInterface(const std::string& robot_name = "go2");
+ 
++  void enableCpgGuard() { cpg_guard_=true; }
++  bool cpgFaulted() const { return cpg_fault_.load(); }
++  uint32_t consumedTick() const { return consumed_tick_; }
+   void loadInterface(int argc, char** argv) override;
+   void unloadInterface() override;
+ 
+@@ -119,7 +125,17 @@ class UnitreeInterface : public HardwareInterface {
+   std::vector<std::string> wheel_joint_names_ = {
+       "jtoe0", "jtoe1", "jtoe2", "jtoe3"};
+ 
++  std::array<int16_t,kNumLegs> consumed_forces_{};
++  uint32_t consumed_tick_=0;
+   bool state_received_ = false;
++  bool cpg_guard_=false;
++  std::atomic<bool> cpg_fault_{false}, watchdog_stop_{false};
++  std::chrono::steady_clock::time_point state_received_at_, command_received_at_;
++  rclcpp::Time state_stamp_{0,0,RCL_SYSTEM_TIME};
++  std::mutex command_mutex_;
++  std::thread watchdog_;
++  void writeDampingLocked();
++  void watchdogLoop();
+ };
+ 
+ #endif  // UNITREE_INTERFACE_H
+diff --git a/robot_driver/include/robot_driver/robot_driver.hpp b/robot_driver/include/robot_driver/robot_driver.hpp
+index 6d8eae1d5..1ffe47f6b 100644
+--- a/robot_driver/include/robot_driver/robot_driver.hpp
++++ b/robot_driver/include/robot_driver/robot_driver.hpp
+@@ -32,6 +32,8 @@
+ #include "robot_driver/controllers/underbrush_inverse_dynamics.hpp"
+ #include "robot_driver/controllers/inertia_estimation_controller.hpp"
+ #include "robot_driver/controllers/joint_controller.hpp"
++#include "robot_driver/controllers/cpg_controller.hpp"
++#include <quad_msgs/msg/cpg_sensor_frame.hpp>
+ #include "robot_driver/controllers/leg_controller.hpp"
+ #ifdef HAS_ONNXRUNTIME
+ #include "robot_driver/controllers/learned_policy.hpp"
+@@ -73,6 +75,7 @@ class RobotDriver {
+    * @brief Initializes leg controller object
+    */
+   void initLegController();
++  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr control_mode_pub_;
+ 
+   /**
+    * @brief Initializes states and controls structures
+@@ -280,6 +283,8 @@ class RobotDriver {
+ 
+   /// Torque limits
+   std::vector<double> torque_limits_;
++  std::vector<double> cpg_transition_start_;
++  rclcpp::Publisher<quad_msgs::msg::CpgSensorFrame>::SharedPtr cpg_sensor_pub_;
+ 
+   /// Define ids for control modes: Sit
+   const int SIT = 0;
+diff --git a/robot_driver/src/hardware_interfaces/unitree_interface.cpp b/robot_driver/src/hardware_interfaces/unitree_interface.cpp
+index b719c3176..87b407420 100644
+--- a/robot_driver/src/hardware_interfaces/unitree_interface.cpp
++++ b/robot_driver/src/hardware_interfaces/unitree_interface.cpp
+@@ -1,6 +1,7 @@
+ #include "robot_driver/hardware_interfaces/unitree_interface.hpp"
+ 
+ #include <cstdlib>
++#include "robot_driver/controllers/cpg_command_guard.hpp"
+ #include <iostream>
+ #include <unistd.h>
+ 
+@@ -76,9 +77,16 @@ void UnitreeInterface::loadInterface(int /*argc*/, char** /*argv*/) {
+                           1);
+ 
+   initLowCmd();
++  if(cpg_guard_) {
++    command_received_at_=std::chrono::steady_clock::now();
++    watchdog_=std::thread(&UnitreeInterface::watchdogLoop,this);
++  }
+ }
+ 
+ void UnitreeInterface::unloadInterface() {
++  watchdog_stop_=true;
++  if(watchdog_.joinable()) watchdog_.join();
++  std::lock_guard<std::mutex> command_lock(command_mutex_);
+   initLowCmd();
+   low_cmd_.crc() = crc32Core(reinterpret_cast<uint32_t*>(&low_cmd_),
+                              (sizeof(unitree_go::msg::dds_::LowCmd_) >> 2) - 1);
+@@ -103,7 +111,17 @@ void UnitreeInterface::initLowCmd() {
+ 
+ void UnitreeInterface::lowStateHandler(const void* message) {
+   std::lock_guard<std::mutex> lock(state_mutex_);
+-  low_state_ = *(const unitree_go::msg::dds_::LowState_*)message;
++  const auto& incoming=*(const unitree_go::msg::dds_::LowState_*)message;
++  // Repeated DDS delivery does not refresh a frozen MCU sample. A wrapping
++  // counter is allowed; source time is otherwise represented by host receipt.
++  if(cpg_guard_ && state_received_) {
++    const int32_t delta=static_cast<int32_t>(incoming.tick()-low_state_.tick());
++    if(delta<0) cpg_fault_=true;
++    if(delta<=0) return;
++  }
++  low_state_ = incoming;
++  state_received_at_=std::chrono::steady_clock::now();
++  state_stamp_=rclcpp::Clock(RCL_SYSTEM_TIME).now();
+   // Reorder Unitree's foot_force [FR, FL, RR, RL] into quad-sdk leg order
+   // [FL, RL, FR, RR] so downstream code uses a single convention.
+   const auto& ff = low_state_.foot_force();
+@@ -116,7 +134,7 @@ void UnitreeInterface::lowStateHandler(const void* message) {
+ std::array<int16_t, UnitreeInterface::kNumLegs>
+ UnitreeInterface::getFootForcesRaw() const {
+   std::lock_guard<std::mutex> lock(state_mutex_);
+-  return foot_force_quad_order_;
++  return consumed_forces_;
+ }
+ 
+ uint32_t UnitreeInterface::crc32Core(uint32_t* ptr, uint32_t len) {
+@@ -147,13 +165,39 @@ uint32_t UnitreeInterface::crc32Core(uint32_t* ptr, uint32_t len) {
+ bool UnitreeInterface::send(
+     const quad_msgs::msg::LegCommandArray& leg_command_array_msg,
+     const Eigen::VectorXd& user_tx_data) {
++  std::array<double,12> measured_q{},measured_dq{};
++  if(cpg_guard_) {
++    std::lock_guard<std::mutex> state_lock(state_mutex_);
++    if(!state_received_ || std::chrono::duration<double>(std::chrono::steady_clock::now()-state_received_at_).count()>.05)
++      cpg_fault_=true;
++    for(int i=0;i<12;++i) {
++      measured_q[i]=low_state_.motor_state()[i].q();measured_dq[i]=low_state_.motor_state()[i].dq();
++      if(!cpg_guard::measuredRange(measured_q[i],measured_dq[i],i%3)) cpg_fault_=true;
++    }
++    if(leg_command_array_msg.leg_commands.size()!=4) cpg_fault_=true;
++    else for(const auto& leg:leg_command_array_msg.leg_commands) if(leg.motor_commands.size()!=3) cpg_fault_=true;
++  }
++  std::lock_guard<std::mutex> command_lock(command_mutex_);
++  command_received_at_=std::chrono::steady_clock::now();
++  if(cpg_guard_ && cpg_fault_) {writeDampingLocked();return false;}
+   for (int leg = 0; leg < kNumLegs; ++leg) {
+     const auto& leg_cmd = leg_command_array_msg.leg_commands.at(leg);
+ 
+     // 12 leg motors.
+     for (int j = 0; j < kJointsPerLeg; ++j) {
+       int motor_idx = kLegMap[leg][j];
+-      const auto& mc = leg_cmd.motor_commands.at(j);
++      auto mc = leg_cmd.motor_commands.at(j);
++      if(cpg_guard_) {
++        cpg_guard::Motor m{mc.pos_setpoint,mc.vel_setpoint,mc.kp,mc.kd,mc.torque_ff};
++        try {
++          if(mc.kp>60.||mc.kd>5.) throw std::invalid_argument("CPG excessive gains");
++          cpg_guard::limit(m,measured_q[motor_idx],measured_dq[motor_idx]);
++        } catch(const std::exception& e) {
++          std::cerr<<"CPG interface fault: "<<e.what()<<std::endl;
++          cpg_fault_=true;writeDampingLocked();return false;
++        }
++        mc.kp=m.kp;mc.kd=m.kd;mc.torque_ff=m.ff;
++      }
+ 
+       low_cmd_.motor_cmd()[motor_idx].mode() = 0x01;
+       low_cmd_.motor_cmd()[motor_idx].q() = static_cast<float>(mc.pos_setpoint);
+@@ -219,6 +263,20 @@ bool UnitreeInterface::recv(sensor_msgs::msg::JointState& joint_state_msg,
+     return false;
+   }
+ 
++  if(cpg_guard_) {
++    if(cpg_fault_ || std::chrono::duration<double>(std::chrono::steady_clock::now()-state_received_at_).count()>.05) {
++      cpg_fault_=true;return false;
++    }
++  }
++  if(cpg_guard_) for(int i=0;i<12;++i) {
++    if(!cpg_guard::measuredRange(low_state_.motor_state()[i].q(),low_state_.motor_state()[i].dq(),i%3)) {
++      cpg_fault_=true;return false;
++    }
++  }
++  joint_state_msg.header.stamp=state_stamp_;
++  imu_msg.header.stamp=state_stamp_;
++  consumed_forces_=foot_force_quad_order_;
++  consumed_tick_=low_state_.tick();
+   // 12 leg joints, in quad-sdk leg-then-joint order.
+   int idx = 0;
+   for (int leg = 0; leg < kNumLegs; ++leg) {
+@@ -283,3 +341,31 @@ bool UnitreeInterface::recv(sensor_msgs::msg::JointState& joint_state_msg,
+ 
+   return true;
+ }
++
++
++void UnitreeInterface::writeDampingLocked() {
++  initLowCmd();
++  for(int i=0;i<12;++i) {
++    auto& m=low_cmd_.motor_cmd()[i];m.q()=0.;m.dq()=0.;m.kp()=0.;m.kd()=.5;m.tau()=0.;
++  }
++  low_cmd_.crc()=crc32Core(reinterpret_cast<uint32_t*>(&low_cmd_),
++      (sizeof(unitree_go::msg::dds_::LowCmd_)>>2)-1);
++  cmd_pub_->Write(low_cmd_);
++}
++
++void UnitreeInterface::watchdogLoop() {
++  // Best-effort watchdog in a separate thread. Process/OS/network failure still
++  // requires the robot's independent protection and physical operator stop.
++  while(!watchdog_stop_) {
++    std::this_thread::sleep_for(std::chrono::milliseconds(5));
++    bool stale=false;
++    {
++      std::lock_guard<std::mutex> state_lock(state_mutex_);
++      stale=state_received_ && std::chrono::duration<double>(std::chrono::steady_clock::now()-state_received_at_).count()>.05;
++    }
++    std::lock_guard<std::mutex> command_lock(command_mutex_);
++    if(stale || std::chrono::duration<double>(std::chrono::steady_clock::now()-command_received_at_).count()>.06)
++      cpg_fault_=true;
++    if(cpg_fault_) writeDampingLocked();
++  }
++}
+diff --git a/robot_driver/src/robot_driver.cpp b/robot_driver/src/robot_driver.cpp
+index 2595137fe..9440b2cc0 100644
+--- a/robot_driver/src/robot_driver.cpp
++++ b/robot_driver/src/robot_driver.cpp
+@@ -176,12 +176,24 @@ RobotDriver::RobotDriver(std::shared_ptr<rclcpp::Node> node, int argc,
+   // Initialize kinematics object
+   quadKD2_ = std::make_shared<quad_utils::QuadKD2>(node_, robot_ns);
+ 
++  if (controller_id_ == "cpg" && is_hardware_) {
++    bool enabled=false, calibrated=false, timing=false, sim_time=false;
++    quad_utils::loadROSParamDefault(node_, "cpg.hardware_enabled", enabled, false);
++    quad_utils::loadROSParamDefault(node_, "cpg.contact_calibrated", calibrated, false);
++    quad_utils::loadROSParamDefault(node_, "cpg.timing_verified", timing, false);
++    node_->get_parameter("use_sim_time",sim_time);
++    if (!(enabled && calibrated && timing) || sim_time || robot_name!="go2" || update_rate_<250.)
++      throw std::runtime_error("CPG hardware gate: enable/calibration/timing required, Go2 only, wall clock, >=250Hz");
++  }
++
+   // Initialize hardware interface
+   if (is_hardware_) {
+     if (robot_name == "spirit" || robot_name == "spirit_rotors") {
+       hardware_interface_ = std::make_shared<SpiritInterface>();
+     } else if (robot_name == "go2" || robot_name == "go2w") {
+       hardware_interface_ = std::make_shared<UnitreeInterface>(robot_name);
++      if (controller_id_=="cpg")
++        std::dynamic_pointer_cast<UnitreeInterface>(hardware_interface_)->enableCpgGuard();
+     } else {
+       RCLCPP_ERROR_STREAM(node_->get_logger(), "Invalid robot name "
+                                                    << robot_name
+@@ -190,10 +202,13 @@ RobotDriver::RobotDriver(std::shared_ptr<rclcpp::Node> node, int argc,
+     }
+   }
+ 
++  cpg_sensor_pub_=node_->create_publisher<quad_msgs::msg::CpgSensorFrame>("cpg/sensors",rclcpp::SensorDataQoS().keep_last(1));
+   initLegController();
+ 
++  control_mode_pub_ = node_->create_publisher<std_msgs::msg::UInt8>("state/control_mode", 1);
++
+   // Start sitting
+-  control_mode_ = SIT;
++  control_mode_ = (controller_id_=="cpg" && is_hardware_) ? SAFETY : SIT;
+   remote_heartbeat_received_time_ = std::numeric_limits<double>::max();
+   last_state_time_ = std::numeric_limits<double>::max();
+ 
+@@ -270,6 +285,8 @@ void RobotDriver::initLegController() {
+   } else if (controller_id_ == "inertia_estimation") {
+     leg_controller_ = std::make_shared<InertiaEstimationController>(
+         node_, robot_ns, quadKD2_);
++  } else if (controller_id_ == "cpg") {
++    leg_controller_ = std::make_shared<CpgController>(node_, robot_ns, quadKD2_);
+   } else if (controller_id_ == "learned") {
+ #ifdef HAS_ONNXRUNTIME
+     leg_controller_ =
+@@ -324,6 +341,20 @@ void RobotDriver::initStateControlStructs() {
+ 
+ void RobotDriver::controlModeCallback(
+     const std_msgs::msg::UInt8::SharedPtr msg) {
++  if(controller_id_=="cpg") {
++    auto c=std::dynamic_pointer_cast<CpgController>(leg_controller_);
++    if (c && c->faulted() && msg->data!=SAFETY) return;
++    if (msg->data==SAFETY) {
++      if(c && control_mode_!=SAFETY) c->latchFault("operator safety request");
++      control_mode_=SAFETY; return; // safety must interrupt a stand/sit transition
++    }
++  }
++  if(controller_id_=="cpg" && is_hardware_ && msg->data==READY && control_mode_==SAFETY) {
++    if(last_joint_state_msg_.position.size()!=12) return;
++    for(double q:last_joint_state_msg_.position) if(!std::isfinite(q)) return;
++    cpg_transition_start_=last_joint_state_msg_.position;
++    control_mode_=SIT_TO_READY;transition_timestamp_=node_->now();return;
++  }
+   // Wait if transitioning
+   if ((control_mode_ == SIT_TO_READY) || (control_mode_ == READY_TO_SIT))
+     return;
+@@ -333,6 +364,7 @@ void RobotDriver::controlModeCallback(
+     transition_timestamp_ = node_->now();
+   } else if ((msg->data == SIT) &&
+              (control_mode_ == READY)) {  // Sit if previously standing
++    if(controller_id_=="cpg") cpg_transition_start_=last_robot_state_msg_.joints.position;
+     control_mode_ = READY_TO_SIT;
+     transition_timestamp_ = node_->now();
+   } else if (msg->data == SIT ||
+@@ -494,7 +526,7 @@ bool RobotDriver::updateState() {
+     if (auto* unitree =
+             dynamic_cast<UnitreeInterface*>(hardware_interface_.get())) {
+       quad_msgs::msg::FootContact fc_msg;
+-      fc_msg.header.stamp = node_->now();
++      fc_msg.header.stamp = controller_id_=="cpg" ? rclcpp::Time(last_joint_state_msg_.header.stamp) : node_->now();
+       fc_msg.header.frame_id = "map";
+       const auto raw = unitree->getFootForcesRaw();
+       fc_msg.foot_force_raw.resize(num_feet_);
+@@ -504,6 +536,12 @@ bool RobotDriver::updateState() {
+         fc_msg.contact_states[i] = (raw[i] > foot_contact_threshold_);
+       }
+       foot_contact_pub_->publish(fc_msg);
++      quad_msgs::msg::CpgSensorFrame frame;
++      frame.header=last_joint_state_msg_.header;
++      frame.source_tick=unitree->consumedTick();
++      frame.joints=last_joint_state_msg_;frame.imu=last_imu_msg_;frame.contact=fc_msg;
++      frame.contact.header=frame.header;
++      cpg_sensor_pub_->publish(frame);
+     }
+ 
+     // Pass IMU to learned policy for acceleration access. Hoisted out of the
+@@ -524,7 +562,7 @@ bool RobotDriver::updateState() {
+     // all available from onboard sensors. With mocap (use_mocap_), fall
+     // through to the real state estimator instead — it supplies a true world
+     // pose rather than a body pinned to the origin.
+-    if (controller_id_ == "learned" && !use_mocap_) {
++    if ((controller_id_ == "learned" || controller_id_ == "cpg") && !use_mocap_) {
+       rclcpp::Time state_timestamp = node_->now();
+ 
+       // Joint state from encoders
+@@ -641,7 +679,7 @@ bool RobotDriver::updateState() {
+ 
+ void RobotDriver::publishState() {
+   if (is_hardware_) {
+-    last_joint_state_msg_.header.stamp = node_->now();
++    if(controller_id_!="cpg") last_joint_state_msg_.header.stamp = node_->now();
+     imu_pub_->publish(last_imu_msg_);
+     joint_state_pub_->publish(last_joint_state_msg_);
+     robot_state_pub_->publish(last_robot_state_msg_);
+@@ -688,7 +726,8 @@ bool RobotDriver::updateControl() {
+         int joint_idx = 3 * i + j;
+ 
+         robot_driver_utils::loadMotorCommandMsg(
+-            0, 0, 0, safety_kp_.at(j), safety_kd_.at(j),
++            0, 0, 0, controller_id_=="cpg" ? 0. : safety_kp_.at(j),
++            controller_id_=="cpg" ? .5 : safety_kd_.at(j),
+             leg_command_array_msg_.leg_commands.at(i).motor_commands.at(j));
+       }
+     }
+@@ -733,9 +772,9 @@ bool RobotDriver::updateControl() {
+     for (int i = 0; i < num_feet_; ++i) {
+       leg_command_array_msg_.leg_commands.at(i).motor_commands.resize(3);
+       for (int j = 0; j < 3; ++j) {
+-        double ang =
+-            (stand_joint_angles_.at(j) - sit_joint_angles_.at(j)) * t_interp +
+-            sit_joint_angles_.at(j);
++        const double start=(controller_id_=="cpg" && cpg_transition_start_.size()==12)
++            ? cpg_transition_start_[3*i+j] : sit_joint_angles_.at(j);
++        double ang=(stand_joint_angles_.at(j)-start)*t_interp+start;
+ 
+         robot_driver_utils::loadMotorCommandMsg(
+             ang, 0, 0, stand_kp_.at(j), stand_kd_.at(j),
+@@ -754,9 +793,9 @@ bool RobotDriver::updateControl() {
+     for (int i = 0; i < num_feet_; ++i) {
+       leg_command_array_msg_.leg_commands.at(i).motor_commands.resize(3);
+       for (int j = 0; j < 3; ++j) {
+-        double ang =
+-            (sit_joint_angles_.at(j) - stand_joint_angles_.at(j)) * t_interp +
+-            stand_joint_angles_.at(j);
++        const double start=(controller_id_=="cpg" && cpg_transition_start_.size()==12)
++            ? cpg_transition_start_[3*i+j] : stand_joint_angles_.at(j);
++        double ang=(sit_joint_angles_.at(j)-start)*t_interp+start;
+ 
+         robot_driver_utils::loadMotorCommandMsg(
+             ang, 0, 0, stand_kp_.at(j), stand_kd_.at(j),
+@@ -836,6 +875,9 @@ bool RobotDriver::updateControl() {
+ }
+ 
+ void RobotDriver::publishControl(bool is_valid) {
++  std_msgs::msg::UInt8 mode;
++  mode.data = control_mode_;
++  control_mode_pub_->publish(mode);
+   // Stamp and send the message
+   // if ((ros::Time::now() - leg_command_array_msg_.header.stamp).toSec()
+   // >= 1.0/publish_rate_) {
+diff --git a/docs/cpg_gazebo.md b/docs/cpg_gazebo.md
+new file mode 100644
+index 00000000..cc509f4d
+--- /dev/null
++++ b/docs/cpg_gazebo.md
+@@ -0,0 +1,211 @@
++# Conga through Quad-SDK in Gazebo
++
++The `cpg` controller runs a metadata-declared **75- or 81-observation** CPG policy and reference
++runtime through Quad-SDK's normal joint-command path. This launch is simulation-only.
++A separate, explicitly gated hardware test path is documented in
++[cpg_hardware.md](cpg_hardware.md); hardware calibration/timing remain unverified.
++The later robustness experiment adds the optional 81-input actor; the original integration and policies remain selectable.
++
++## Build
++
++In a terminal with ROS Jazzy and the isolated workspace overlay sourced:
++
++```bash
++source /opt/ros/jazzy/setup.bash
++source ~/ros2_ws/install_nick_conga/local_setup.bash
++cd ~/ros2_ws
++colcon --log-base log_nick_conga build \
++  --base-paths src/quad-sdk \
++  --build-base build_nick_conga --install-base install_nick_conga \
++  --symlink-install --packages-select quad_utils robot_driver gazebo_plugins \
++  --parallel-workers 2 --cmake-args -DCMAKE_BUILD_TYPE=Release
++```
++
++The conga repository must contain its exported bundles and `.local/unitree_ros`
++Go2 URDF. Its Python environment needs Torch, NumPy, PyYAML and ONNX Runtime.
++ROS uses system Python 3.12; the policy runs in the separate existing Python 3.11
++worker. `policy_python:=...` overrides the interpreter path.
++
++## Launch and command
++
++Use a normal desktop terminal with `DISPLAY` and `XAUTHORITY` intact. In every
++terminal used for this simulation:
++
++```bash
++source /opt/ros/jazzy/setup.bash
++source ~/ros2_ws/install_nick_conga/local_setup.bash
++export ROS_DOMAIN_ID=87
++export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
++export GZ_PARTITION=nick_conga_demo
++```
++
++Stop previous simulations in this same domain/partition before launching another.
++The dedicated launch defaults to the walking-only CPG candidate:
++
++```bash
++ros2 launch quad_utils quad_cpg_gazebo.py \
++  conga_root:="$HOME/Documents/nicholas_chung/go2-conga/unitree_rl_lab" \
++  trace:=/tmp/conga_walk.jsonl
++```
++
++Wait for both joint controllers to report activation and for the robot to settle.
++In another terminal with the same environment, enter READY:
++
++```bash
++ros2 topic pub --once /robot_1/control/mode std_msgs/msg/UInt8 '{data: 1}'
++```
++
++The runtime completes measured startup settling and begins marching at 90 BPM.
++For forward travel:
++
++```bash
++ros2 topic pub --rate 50 /robot_1/cmd_vel geometry_msgs/msg/Twist \
++  '{linear: {x: 0.1}, angular: {z: 0.0}}'
++```
++
++Ctrl+C stops this command stream. After 0.25 simulation seconds without a fresh
++command, travel becomes zero **and marching/dancing continues**. This is different
++from the basic walking controller's stale-command behavior.
++
++To test the experimental traveling dance, stop the current simulation and relaunch
++with this extra argument:
++
++```bash
++selection:="$HOME/Documents/nicholas_chung/go2-conga/unitree_rl_lab/exports/go2_cpg_demo_dance_experimental_20261101/assets/selection.json"
++```
++
++The preserved original dance is selectable through
++`exports/go2_cpg_quad_sdk_candidate/assets/selection.json`, but its holds failed
++this Gazebo evaluation. The experimental policy performed better here; neither
++is hardware-qualified. Use `gui:=false rviz:=false` for headless evaluation.
++
++Inspect status with:
++
++```bash
++ros2 topic echo /robot_1/cpg/status
++```
++
++The configured trace contains sensor packets, requested velocity, targets,
++contact-event metrics and separately labeled simulator ground truth.
++
++## Architecture and failure behavior
++
++- Raw `/robot_1/joint_states`, `/robot_1/imu`, and four contact topics feed the
++  adapter. It never injects simulator root position/velocity into the actor.
++- The shared runtime supplies the scheduler, trajectories, IK, the declared observation vector,
++  ONNX inference and bounded residuals at 50 Hz. Gains remain 25/0.5.
++- `/robot_1/cpg/target` carries validated joint targets to the C++ `CpgController`.
++  `robot_driver` remains the sole publisher on `control/joint_command`, preserves
++  its sit/stand/READY state machine and sends commands through the existing
++  Gazebo motor-limit/PD plugin.
++- The adapter waits for the driver's actual `state/control_mode == 1`, rather
++  than starting the choreography during the standing transition.
++- Stale joint/IMU data, nonfinite inputs, excessive tilt, missed ticks and worker
++  failures latch the adapter off. Leaving READY after starting also latches it.
++- Missing targets for 0.1 simulation seconds or malformed commands latch the C++
++  sink off. It then uses the existing **simulation standing fallback**. This is
++  not a validated real-robot airborne recovery behavior.
++- Restart the simulation to rearm after a fault or an explicit mode change.
++  Neutral joystick input is not a fault and does not restart the musical clock.
++- The simulation worker deadline is 50 ms of wall time, separate from the 20 ms
++  simulation-time control interval. This is not a hardware real-time guarantee.
++
++## Gazebo corrections and remaining model differences
++
++The shared IMU model originally published at 1 Hz; it now publishes at 500 Hz.
++The launch resolves resources/plugins from the active overlay rather than old
++`.bashrc` paths. Desktop display variables must be preserved in clean shells.
++
++For **Go2 + controller=cpg only**, generated SDF removes four duplicate foot
++collision spheres inherited from fixed-joint lumping. Each instrumented toe is
++then the sole foot sphere. The original SDF and other controller modes are
++unchanged. Inertias and friction are unchanged. Joint dynamics retain their original values
++unless the diagnostic overrides below are explicitly enabled.
++
++Gazebo contact streams are event-like: individual airborne feet stop publishing.
++Their force expires to zero after 10 ms; joint/IMU data and at least one support
++contact stream must remain fresh. A lost individual contact stream is therefore
++conservatively interpreted as lost contact, not as hardware-sensor qualification.
++Real Unitree foot-force units and thresholds still require calibration.
++
++The SDF still contains passive joint stiffness 3 Nm/rad toward the sitting pose,
++damping 0.5, and a total modeled mass around 16.247 kg versus the runtime's nominal
++16.087 kg. These remain the default values; opt-in diagnostic overrides are available below. At a standing knee
++angle around -1.58 rad, the sitting spring contributes roughly -3.2 Nm; the
++policy's maximum residual displacement corresponds to about 3 Nm at Kp=25.
++Audit these dynamics against the physical robot before interpreting Gazebo as
++hardware validation or training specifically to compensate for them.
++
++## Results and review boundary
++
++See the conga repository's `reports/go2_cpg_gazebo_integration.md` and
++`logs/cpg_gazebo_integration_20261101/summary.json` for measured results. The
++walking baseline and experimental traveling dance execute through the full stack.
++The initial integration did not train a new actor. The later authorized 75/81-input robustness comparison is documented in the conga repository’s `reports/go2_cpg_robust_compare.md`.
++
++
++## Passive-dynamics diagnostic overrides
++
++For Go2 + `controller=cpg` only, add these arguments to the dedicated launch:
++
++```bash
++cpg_disable_springs:=true cpg_disable_damping:=true
++```
++
++Both default to `false`. They set only the generated model's revolute-joint
++passive stiffness/damping to zero. Motor PD remains Kp=25, Kd=0.5, and the source
++SDF is unchanged. `cpg_model_dump:=/tmp/cpg_model.sdf` optionally saves the exact
++generated model. These switches are diagnostics, not a physical Go2 calibration.
++
++Two 40-second repeats per condition with the frozen experimental dance policy:
++original model 13/28 strict kick chains; springs off 10/28; springs and passive
++damping off 28/28. All conditions completed 88/88 steps without falls. Springs
++off corrected hold clearance; removing passive damping as well corrected timing.
++Final neutral forward drift fell from 0.516 m to 0.004 m over 16 seconds with
++both disabled, while maximum body tilt increased from 4.32° to 7.21°.
++
++See the conga repository's `reports/go2_cpg_passive_ab.md` and
++`logs/cpg_passive_ab_20261101/` for protocol, plots, raw traces, generated models
++and checksums. No defaults were changed and no training was started.
++
++
++## Broader readiness audit (2026-11-01)
++
++The longer follow-up supersedes any readiness inference from the short forward
++comparison: backward travel with the experimental dance policy triggers excessive
++tilt at about 31 seconds in two fresh runs. Neutral dancing drifts backward over
++90 seconds. Official-model MuJoCo kicks remain substantially less reliable than
++the modified Gazebo model outside forward travel. Hardware mode remains blocked.
++
++The conga repository's `reports/go2_cpg_broad_sim.md` records 29 closed-loop trials,
++600-packet ROS replay, configuration provenance, and domain-randomization gaps.
++Its `logs/cpg_broad_sim_20261101/config_audit.json` distinguishes actual checkpoint
++training settings from exported evaluation metadata. No training/default changes.
++The audit also notes that RobotDriver's clamped `effort` telemetry does not clamp
++the separate position/gain command sent by UnitreeInterface; validate total-torque
++limiting before any hardware activation.
++
++## Matched actuator profile and robustness candidates
++
++The optional `cpg_actuator_profile:=go2hv_mujoco_v1` is available only for Go2
++CPG simulation. It generates a separate SDF with passive springs zero, damping
++0.1 and friction 0.2, and a temporary plugin configuration enabling a motor
++envelope of 20.2 Nm motoring / 23.4 Nm braking, tapering above 13.5 rad/s to
++zero at 30 rad/s. PD remains 25/0.5. Source SDF/YAML and default `legacy`
++behavior are preserved. Diagnostic disable flags override passive terms.
++Gazebo effective rotor inertia and physical motor behavior still need calibration.
++
++Select a robustness candidate explicitly, together with that profile:
++
++```bash
++ros2 launch quad_utils quad_cpg_gazebo.py \
++  conga_root:="$HOME/Documents/nicholas_chung/go2-conga/unitree_rl_lab" \
++  selection:="$HOME/Documents/nicholas_chung/go2-conga/unitree_rl_lab/exports/go2_cpg_robust75_20261101/assets/selection.json" \
++  cpg_actuator_profile:=go2hv_mujoco_v1
++```
++
++The corresponding `go2_cpg_robust81_20261101` bundle contains the other arm.
++The extra six values are contact-kinematic vx/vy and four measured contact flags;
++they do not use simulator body velocity. Read the comparison report before
++choosing a candidate. These exports remain simulation/shadow-only. The hardware
++guard, stale-sensor latch and simulation-only fallback remain in force.
+diff --git a/docs/cpg_hardware.md b/docs/cpg_hardware.md
+new file mode 100644
+index 00000000..6fd3751e
+--- /dev/null
++++ b/docs/cpg_hardware.md
+@@ -0,0 +1,25 @@
++# Go2 CPG hardware test integration
++
++The complete operator guide is in the conga bundle/repository at
++`docs/go2_cpg_hardware.md`; qualification evidence is in
++`reports/go2_cpg_hardware6h.md`. This integration is an opt-in test candidate,
++not hardware-qualified. No real robot was connected during development.
++
++Build `quad_msgs`, `quad_utils` and `robot_driver` natively in a separate overlay.
++The custom `CpgSensorFrame` carries a single coherent LowState sample. The shadow
++adapter consumes it without motor output. The active adapter feeds `cpg/target`
++only after real calibration/timing attestations and explicit READY.
++
++`quad_cpg_hardware.py` requires the complete conga root, selection, profile,
++policy Python and `activate_hardware:=true`. It never arms automatically and
++checks the worker before vendor initialization. Launching the driver releases
++Unitree Sport mode; start supported/seated with one motor-command owner.
++
++For this branch: SIT=0, READY=1, SIT_TO_READY=2, READY_TO_SIT=3, SAFETY=4.
++Do not use the generic tutorial's mode 2 as a walking request. Neutral input
++keeps dancing. A requests deliberate settling/standing; B/SAFETY latches damping.
++Damping is not a guaranteed upright recovery, and a fault requires restart.
++
++The existing learned walking controller and its policy remain available as the
++rollback path. Hardware-specific changes are guarded by `controller=cpg` except
++for the additive coherent raw-sensor topic and same-packet force retrieval.
+diff --git a/quad_msgs/msg/CpgSensorFrame.msg b/quad_msgs/msg/CpgSensorFrame.msg
+new file mode 100644
+index 00000000..5df961e4
+--- /dev/null
++++ b/quad_msgs/msg/CpgSensorFrame.msg
+@@ -0,0 +1,8 @@
++# Raw sensors from ONE Unitree LowState sample. No simulator/estimator root state.
++# Joint/force order is Quad-SDK FL, RL, FR, RR. Header is host receipt time of
++# an advancing MCU tick; repeated samples retain their original source stamp.
++std_msgs/Header header
++uint32 source_tick
++sensor_msgs/JointState joints
++sensor_msgs/Imu imu
++quad_msgs/FootContact contact
+diff --git a/quad_utils/launch/quad_cpg_gazebo.py b/quad_utils/launch/quad_cpg_gazebo.py
+new file mode 100644
+index 00000000..6c610690
+--- /dev/null
++++ b/quad_utils/launch/quad_cpg_gazebo.py
+@@ -0,0 +1,44 @@
++"""Run the complete CPG controller through Quad-SDK in Gazebo (no hardware)."""
++import json
++import os
++from pathlib import Path
++from launch import LaunchDescription
++from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, OpaqueFunction
++from launch.launch_description_sources import PythonLaunchDescriptionSource
++from launch.substitutions import LaunchConfiguration
++from ament_index_python.packages import get_package_share_directory, get_package_prefix
++
++
++def start(context):
++    root=Path(LaunchConfiguration('conga_root').perform(context)).expanduser().resolve()
++    selection=LaunchConfiguration('selection').perform(context)
++    if not selection:
++        selection=str(root/'exports/go2_cpg_demo_walk_20261101/assets/selection.json')
++    if not Path(selection).is_file(): raise RuntimeError('Missing CPG selection: '+selection)
++    script=os.path.join(get_package_prefix('quad_utils'),'lib','quad_utils','cpg_gazebo.py')
++    return [
++        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('quad_utils'),'launch','quad_gazebo.py')),
++            launch_arguments={'robot_configs':json.dumps([{'name':'robot_1','type':'go2','controller':'cpg','init_pose':'-x 0 -y 0 -z 0.5'}]),
++                              'cpg_disable_springs':LaunchConfiguration('cpg_disable_springs'),
++                              'cpg_disable_damping':LaunchConfiguration('cpg_disable_damping'),
++                              'cpg_model_dump':LaunchConfiguration('cpg_model_dump'),
++                              'cpg_actuator_profile':LaunchConfiguration('cpg_actuator_profile'),
++                              'gui':LaunchConfiguration('gui'), 'rviz':LaunchConfiguration('rviz'), 'use_sim_time':'true'}.items()),
++        ExecuteProcess(cmd=['/usr/bin/python3','-u',script,'--conga-root',str(root),
++                            '--selection',selection,'--policy-python',LaunchConfiguration('policy_python'),
++                            '--trace',LaunchConfiguration('trace'),'--ros-args','-p','use_sim_time:=true'],output='screen')]
++
++
++def generate_launch_description():
++    return LaunchDescription([
++        DeclareLaunchArgument('conga_root',description='Path to the unitree_rl_lab checkout'),
++        DeclareLaunchArgument('policy_python',default_value=str(Path.home()/'anaconda3/envs/nick_sillywalk/bin/python')),
++        DeclareLaunchArgument('cpg_disable_springs',default_value='false',description='Diagnostic: zero passive joint springs'),
++        DeclareLaunchArgument('cpg_disable_damping',default_value='false',description='Diagnostic: zero passive joint damping'),
++        DeclareLaunchArgument('cpg_model_dump',default_value='',description='Optional generated SDF audit path'),
++        DeclareLaunchArgument('cpg_actuator_profile',default_value='legacy'),
++        DeclareLaunchArgument('selection',default_value='',description='Defaults to preserved walking-only bundle'),
++        DeclareLaunchArgument('trace',default_value='/tmp/cpg_gazebo_trace.jsonl'),
++        DeclareLaunchArgument('gui',default_value='true'),
++        DeclareLaunchArgument('rviz',default_value='true'),
++        OpaqueFunction(function=start)])
+diff --git a/quad_utils/launch/quad_cpg_hardware.py b/quad_utils/launch/quad_cpg_hardware.py
+new file mode 100644
+index 00000000..c972cb37
+--- /dev/null
++++ b/quad_utils/launch/quad_cpg_hardware.py
+@@ -0,0 +1,59 @@
++"""Explicit opt-in Go2 CPG hardware launch. Does not arm or request standing."""
++import json
++from pathlib import Path
++import sys
++import tempfile
++import subprocess
++import os
++from launch import LaunchDescription
++from launch.actions import DeclareLaunchArgument,ExecuteProcess,IncludeLaunchDescription,OpaqueFunction
++from launch.launch_description_sources import PythonLaunchDescriptionSource
++from launch.substitutions import LaunchConfiguration
++from ament_index_python.packages import get_package_share_directory
++import yaml
++
++
++def start(context):
++    root=Path(LaunchConfiguration('conga_root').perform(context)).expanduser().resolve()
++    profile_path=Path(LaunchConfiguration('profile').perform(context)).expanduser().resolve()
++    selection=Path(LaunchConfiguration('selection').perform(context)).expanduser().resolve()
++    if LaunchConfiguration('activate_hardware').perform(context).lower()!='true':
++        raise RuntimeError('Hardware launch requires activate_hardware:=true. For read-only shadow use cpg_quad_hardware.py without --active.')
++    sys.path.insert(0,str(root/'scripts'))
++    from cpg_quad_hardware import validate_profile
++    profile=json.loads(profile_path.read_text());sel=json.loads(selection.read_text());validate_profile(profile,sel,True)
++    # Gate all checks BEFORE creating any driver (its vendor interface releases sport mode).
++    from hashlib import sha256
++    actor=Path(sel['onnx_export']);actor=actor if actor.is_absolute() else selection.parent/actor
++    if sha256(actor.read_bytes()).hexdigest()!=sel['onnx_sha256']:raise ValueError('Policy checksum mismatch')
++    policy_python=LaunchConfiguration('policy_python').perform(context)
++    trace=Path(LaunchConfiguration('trace').perform(context)).expanduser().resolve()
++    if trace.exists():raise ValueError('Trace exists; use a fresh path')
++    trace.parent.mkdir(parents=True,exist_ok=True)
++    # Prove that ROS imports, the custom message, policy dependencies and worker
++    # handshake work BEFORE starting the vendor interface / releasing Sport.
++    subprocess.run(['/usr/bin/python3','-c',
++        'import rclpy; from quad_msgs.msg import CpgSensorFrame; from geometry_msgs.msg import Twist'],check=True,timeout=15)
++    with tempfile.TemporaryDirectory(prefix='cpg_preflight_') as tmp:
++        subprocess.run(['/usr/bin/python3',str(root/'scripts/cpg_preflight.py'),
++            '--selection',str(selection),'--policy-python',policy_python,
++            '--output',str(Path(tmp)/'preflight.json')],check=True,timeout=55)
++    with tempfile.NamedTemporaryFile(dir=trace.parent,prefix='.cpg_trace_probe_'):
++        pass
++    ns=LaunchConfiguration('namespace').perform(context).strip('/')
++    if not ns or '/' in ns:raise ValueError('Use a single robot namespace, e.g. robot_1')
++    with tempfile.NamedTemporaryFile(mode='w',prefix='cpg_hardware_',suffix='.yaml',delete=False) as f:
++        yaml.safe_dump({'/**/robot_driver':{'ros__parameters':{'cpg.hardware_enabled':True,'cpg.contact_calibrated':True,'cpg.timing_verified':True}}},f)
++        params=f.name
++    return [
++        ExecuteProcess(cmd=['/usr/bin/python3','-u',str(root/'scripts/cpg_quad_hardware.py'),'--selection',str(selection),'--profile',str(profile_path),'--policy-python',policy_python,'--robot-ns','/'+ns,'--trace',str(trace),'--active'],output='screen'),
++        IncludeLaunchDescription(PythonLaunchDescriptionSource(str(Path(get_package_share_directory('quad_utils'))/'launch/robot_driver.py')),
++            launch_arguments={'robot_type':'go2','controller':'cpg','is_hardware':'true','mocap':'false','use_sim_time':'false','namespace':ns,'extra_params':params}.items())]
++
++
++def generate_launch_description():
++    return LaunchDescription([
++        DeclareLaunchArgument('conga_root'),DeclareLaunchArgument('selection'),DeclareLaunchArgument('profile'),
++        DeclareLaunchArgument('policy_python'),DeclareLaunchArgument('activate_hardware',default_value='false'),
++        DeclareLaunchArgument('namespace',default_value='robot_1'),DeclareLaunchArgument('trace',default_value='/tmp/cpg_hardware_trace.jsonl'),
++        OpaqueFunction(function=start)])
+diff --git a/robot_driver/include/robot_driver/controllers/cpg_command_guard.hpp b/robot_driver/include/robot_driver/controllers/cpg_command_guard.hpp
+new file mode 100644
+index 00000000..4b02fc28
+--- /dev/null
++++ b/robot_driver/include/robot_driver/controllers/cpg_command_guard.hpp
+@@ -0,0 +1,39 @@
++#pragma once
++#include <algorithm>
++#include <cmath>
++#include <stdexcept>
++
++namespace cpg_guard {
++// Sample-based bound on PD + feedforward. This changes transmitted gains/torque,
++// not just telemetry. It is NOT a guarantee of physical torque between samples.
++struct Motor { double q, dq, kp, kd, ff; };
++inline double effort(const Motor& m, double q, double dq) {
++  return m.kp*(m.q-q)+m.kd*(m.dq-dq)+m.ff;
++}
++inline bool finite(const Motor& m) {
++  return std::isfinite(m.q)&&std::isfinite(m.dq)&&std::isfinite(m.kp)&&
++         std::isfinite(m.kd)&&std::isfinite(m.ff)&&m.kp>=0&&m.kd>=0;
++}
++inline double limit(Motor& m, double q, double dq, double cap=18.) {
++  if (!finite(m)||!std::isfinite(q)||!std::isfinite(dq)||!std::isfinite(cap)||cap<=0)
++    throw std::invalid_argument("nonfinite CPG motor/state or invalid limit");
++  const double raw=effort(m,q,dq);
++  const double envelope=(raw*dq>=0 ? 20.2 : 23.4)*
++      std::clamp((30.-std::abs(dq))/(30.-13.5),0.,1.);
++  const double bound=std::min(cap,envelope);
++  // Scale all gains and feedforward together to avoid cancellation artefacts.
++  const double scale=std::abs(raw)>bound ? bound/std::abs(raw) : 1.;
++  m.kp*=scale;m.kd*=scale;m.ff*=scale;
++  return scale;
++}
++inline bool targetRange(double q,int joint) {
++  // Conservative subset of Go2 URDF bounds; calf stays on negative-knee branch.
++  constexpr double lo[3]={-.95,-1.32,-2.63}, hi[3]={.95,3.24,-.93};
++  return std::isfinite(q)&&q>=lo[joint]&&q<=hi[joint];
++}
++inline bool measuredRange(double q,double dq,int joint) {
++  constexpr double lo[3]={-1.20,-1.73,-2.88},hi[3]={1.20,3.65,-.68};
++  constexpr double speed[3]={35.,35.,18.};
++  return std::isfinite(q)&&std::isfinite(dq)&&q>=lo[joint]&&q<=hi[joint]&&std::abs(dq)<=speed[joint];
++}
++} // namespace cpg_guard
+diff --git a/robot_driver/include/robot_driver/controllers/cpg_controller.hpp b/robot_driver/include/robot_driver/controllers/cpg_controller.hpp
+new file mode 100644
+index 00000000..81f30e2d
+--- /dev/null
++++ b/robot_driver/include/robot_driver/controllers/cpg_controller.hpp
+@@ -0,0 +1,92 @@
++#pragma once
++#include "robot_driver/controllers/leg_controller.hpp"
++#include "robot_driver/controllers/cpg_command_guard.hpp"
++#include <std_msgs/msg/string.hpp>
++#include <chrono>
++#include <stdexcept>
++
++// Complete CPG runtime command sink. Hardware is opt-in and requires calibration
++// attestations. The driver remains the sole joint-command publisher.
++class CpgController : public LegController {
++ public:
++  CpgController(rclcpp::Node::SharedPtr node, const std::string& ns,
++                std::shared_ptr<quad_utils::QuadKD2> kd)
++      : LegController(node, ns, kd) {
++    node_->get_parameter("is_hardware", hardware_);
++    bool enabled=false, calibrated=false, timing=false;
++    quad_utils::loadROSParamDefault(node_,"cpg.hardware_enabled",enabled,false);
++    quad_utils::loadROSParamDefault(node_,"cpg.contact_calibrated",calibrated,false);
++    quad_utils::loadROSParamDefault(node_,"cpg.timing_verified",timing,false);
++    if (hardware_ && !(enabled&&calibrated&&timing))
++      throw std::runtime_error("CPG hardware requires explicit enable, measured contacts and verified timing");
++    fault_pub_=node_->create_publisher<std_msgs::msg::String>("cpg/fault",1);
++    fault_sub_=node_->create_subscription<std_msgs::msg::String>("cpg/fault",1,
++        [this](std_msgs::msg::String::SharedPtr msg){ fail(msg->data.c_str()); });
++    sub_ = node_->create_subscription<quad_msgs::msg::LegCommandArray>(
++        "cpg/target", 1, [this](quad_msgs::msg::LegCommandArray::SharedPtr msg) {
++          if (fault_) return;
++          if (msg->leg_commands.size()!=4) {fail("invalid leg count");return;}
++          const double stamp=rclcpp::Time(msg->header.stamp).seconds();
++          const double age=node_->now().seconds()-stamp;
++          if (age<-.01 || age>.06 || (received_&&stamp<=last_stamp_)) {
++            fail("stale, duplicate or regressing target timestamp");return;
++          }
++          for (const auto& leg:msg->leg_commands) {
++            if (leg.motor_commands.size()!=3) {fail("invalid motor count");return;}
++            for (int j=0;j<3;++j) {
++              const auto& m=leg.motor_commands[j];
++              if (!cpg_guard::targetRange(m.pos_setpoint,j)||m.kp!=25.||m.kd!=.5||
++                  m.torque_ff!=0.||m.vel_setpoint!=0.) {fail("invalid target/gains");return;}
++            }
++          }
++          latest_=*msg;received_=true;last_stamp_=stamp;
++          last_wall_=std::chrono::steady_clock::now();
++        });
++  }
++  bool computeLegCommandArray(const quad_msgs::msg::RobotState& state,
++      quad_msgs::msg::LegCommandArray& output, quad_msgs::msg::GRFArray&) override {
++    if (received_ && (node_->now().seconds()-last_stamp_>.06 ||
++        (hardware_&&std::chrono::duration<double>(std::chrono::steady_clock::now()-last_wall_).count()>.06)))
++      fail("target stream stopped");
++    if (fault_) {
++      // No abrupt position jump to standing while a foot may be raised. Damping
++      // is a harness-test emergency response, NOT a guaranteed upright recovery.
++      output.leg_commands.resize(4);
++      for(auto& leg:output.leg_commands) {
++        leg.motor_commands.resize(3);
++        for(auto& m:leg.motor_commands) {m.pos_setpoint=0;m.vel_setpoint=0;m.kp=0;m.kd=.5;m.torque_ff=0;}
++      }
++      return true;
++    }
++    if (!received_) return false; // driver standing posture before first target
++    output=latest_;
++    if(state.joints.position.size()!=12||state.joints.velocity.size()!=12) {
++      fail("missing joint state");return computeLegCommandArray(state,output,unused_);
++    }
++    for(int leg=0;leg<4;++leg) for(int j=0;j<3;++j) {
++      auto& m=output.leg_commands[leg].motor_commands[j];int idx=3*leg+j;
++      cpg_guard::Motor cmd{m.pos_setpoint,m.vel_setpoint,m.kp,m.kd,m.torque_ff};
++      try { cpg_guard::limit(cmd,state.joints.position[idx],state.joints.velocity[idx]); }
++      catch(const std::exception& e) { fail(e.what());return computeLegCommandArray(state,output,unused_); }
++      m.kp=cmd.kp;m.kd=cmd.kd;m.torque_ff=cmd.ff;
++    }
++    return true;
++  }
++  void latchFault(const char* reason) { fail(reason); }
++  bool faulted() const { return fault_; }
++ private:
++  void fail(const char* reason) {
++    if(fault_) return;
++    fault_=true;
++    std_msgs::msg::String msg;msg.data=reason;fault_pub_->publish(msg);
++    RCLCPP_ERROR(node_->get_logger(),"CPG fault latched: %s; damping only; restart required",reason);
++  }
++  bool hardware_=true,received_=false,fault_=false;
++  double last_stamp_=0.;
++  std::chrono::steady_clock::time_point last_wall_;
++  quad_msgs::msg::GRFArray unused_;
++  quad_msgs::msg::LegCommandArray latest_;
++  rclcpp::Subscription<quad_msgs::msg::LegCommandArray>::SharedPtr sub_;
++  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr fault_sub_;
++  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr fault_pub_;
++};
+diff --git a/robot_driver/test/test_cpg_controller.cpp b/robot_driver/test/test_cpg_controller.cpp
+new file mode 100644
+index 00000000..4f88eb6d
+--- /dev/null
++++ b/robot_driver/test/test_cpg_controller.cpp
+@@ -0,0 +1,73 @@
++#include <gtest/gtest.h>
++#include <robot_driver/controllers/cpg_controller.hpp>
++#include <thread>
++
++class CpgSink : public ::testing::Test {
++ protected:
++  void SetUp() override {
++    if(!rclcpp::ok()) {int argc=0;char** argv=nullptr;rclcpp::init(argc,argv);}
++    rclcpp::NodeOptions opts;opts.parameter_overrides({rclcpp::Parameter("is_hardware",false)});
++    opts.automatically_declare_parameters_from_overrides(true);
++    node=rclcpp::Node::make_shared("cpg_sink_contract",opts);
++    sink=std::make_unique<CpgController>(node,"",nullptr);
++    pub=node->create_publisher<quad_msgs::msg::LegCommandArray>("cpg/target",1);
++    for(int i=0;i<100 && pub->get_subscription_count()==0;++i) {
++      rclcpp::spin_some(node);std::this_thread::sleep_for(std::chrono::milliseconds(5));
++    }
++    ASSERT_GT(pub->get_subscription_count(),0u);
++    command.leg_commands.resize(4);
++    for(auto& l:command.leg_commands) {
++      l.motor_commands.resize(3);
++      for(int j=0;j<3;++j) {
++        auto& m=l.motor_commands[j];m.pos_setpoint=(j==0?0.:(j==1?.8:-1.5));m.kp=25.;m.kd=.5;
++        state.joints.position.push_back(m.pos_setpoint);state.joints.velocity.push_back(0.);
++      }
++    }
++    command.header.stamp=node->now();
++  }
++  void send() {
++    pub->publish(command);
++    for(int i=0;i<5;++i){rclcpp::spin_some(node);std::this_thread::sleep_for(std::chrono::milliseconds(1));}
++  }
++  void expectDamping() {
++    ASSERT_TRUE(sink->computeLegCommandArray(state,output,grf));ASSERT_TRUE(sink->faulted());
++    ASSERT_EQ(output.leg_commands.size(),4u);
++    for(const auto& l:output.leg_commands) for(const auto& m:l.motor_commands) {
++      EXPECT_EQ(m.kp,0.);EXPECT_EQ(m.kd,.5);EXPECT_EQ(m.torque_ff,0.);
++    }
++    // A later valid target must not clear a fault.
++    command.header.stamp=node->now();send();EXPECT_TRUE(sink->faulted());
++  }
++  rclcpp::Node::SharedPtr node;std::unique_ptr<CpgController> sink;
++  rclcpp::Publisher<quad_msgs::msg::LegCommandArray>::SharedPtr pub;
++  quad_msgs::msg::LegCommandArray command,output;quad_msgs::msg::RobotState state;quad_msgs::msg::GRFArray grf;
++};
++TEST_F(CpgSink,StartupWaitAndValidBoundedTarget) {
++  EXPECT_FALSE(sink->computeLegCommandArray(state,output,grf));
++  send();ASSERT_TRUE(sink->computeLegCommandArray(state,output,grf));ASSERT_FALSE(sink->faulted());
++  EXPECT_EQ(output.leg_commands[0].motor_commands[0].kp,25.);
++  state.joints.position[0]=-.9;
++  ASSERT_TRUE(sink->computeLegCommandArray(state,output,grf));
++  const auto& m=output.leg_commands[0].motor_commands[0];EXPECT_LE(m.kp*.9,18.+1e-9);
++}
++TEST_F(CpgSink,DuplicateTimestampLatches){send();send();expectDamping();}
++TEST_F(CpgSink,WrongGainsLatch){command.leg_commands[0].motor_commands[0].kp=26.;send();expectDamping();}
++TEST_F(CpgSink,WrongLegCountLatches){command.leg_commands.resize(3);send();expectDamping();}
++TEST_F(CpgSink,ImpossibleKneeTargetLatches){command.leg_commands[0].motor_commands[2].pos_setpoint=1.5;send();expectDamping();}
++TEST_F(CpgSink,FutureTargetLatches){command.header.stamp=node->now()+rclcpp::Duration::from_seconds(1.);send();expectDamping();}
++TEST_F(CpgSink,LostTargetsDampWithoutStandingJump){send();std::this_thread::sleep_for(std::chrono::milliseconds(70));expectDamping();}
++
++// Constructor only: this class has ROS topics but no Unitree interface or DDS motor publisher.
++TEST(CpgGate,HardwareRequiresAllThreeAttestations) {
++  if(!rclcpp::ok()){int argc=0;char** argv=nullptr;rclcpp::init(argc,argv);}
++  for(int missing=0;missing<4;++missing){
++    rclcpp::NodeOptions opts;opts.automatically_declare_parameters_from_overrides(true);
++    opts.parameter_overrides({rclcpp::Parameter("is_hardware",true),
++      rclcpp::Parameter("cpg.hardware_enabled",missing!=0),
++      rclcpp::Parameter("cpg.contact_calibrated",missing!=1),
++      rclcpp::Parameter("cpg.timing_verified",missing!=2)});
++    auto node=rclcpp::Node::make_shared("cpg_gate_constructor",opts);
++    if(missing<3){EXPECT_THROW(CpgController(node,"",nullptr),std::runtime_error);}
++    else{EXPECT_NO_THROW(CpgController(node,"",nullptr));}
++  }
++}
+diff --git a/robot_driver/test/test_cpg_sensors.cpp b/robot_driver/test/test_cpg_sensors.cpp
+new file mode 100644
+index 00000000..c32e2388
+--- /dev/null
++++ b/robot_driver/test/test_cpg_sensors.cpp
+@@ -0,0 +1,46 @@
++#include <gtest/gtest.h>
++#include "robot_driver/hardware_interfaces/unitree_interface.hpp"
++#include <thread>
++class SensingInterface : public UnitreeInterface {
++ public: using UnitreeInterface::lowStateHandler;
++};
++static unitree_go::msg::dds_::LowState_ sample(uint32_t tick){
++ unitree_go::msg::dds_::LowState_ s;s.tick()=tick;
++ for(int i=0;i<12;++i){s.motor_state()[i].q()=(i%3==2?-1.6f:i%3==1?.8f:0.f)+i*.01f;s.motor_state()[i].dq()=i*.2f;}
++ for(int i=0;i<4;++i)s.foot_force()[i]=10+i;
++ s.imu_state().quaternion()[0]=1.;s.imu_state().gyroscope()[1]=.125;
++ return s;
++}
++static bool read(SensingInterface& iface,sensor_msgs::msg::JointState& j,sensor_msgs::msg::Imu& im){
++ j.name.resize(12);j.position.resize(12);j.velocity.resize(12);j.effort.resize(12);Eigen::VectorXd v;
++ return iface.recv(j,im,v);
++}
++TEST(CpgSensors, OneSampleMappingAndStamp){
++ SensingInterface i;i.enableCpgGuard();auto s=sample(100);i.lowStateHandler(&s);
++ sensor_msgs::msg::JointState j;sensor_msgs::msg::Imu im;ASSERT_TRUE(read(i,j,im));
++ EXPECT_EQ(j.header.stamp,im.header.stamp);EXPECT_NE(j.header.stamp.sec,0);EXPECT_EQ(i.consumedTick(),100u);
++ EXPECT_NEAR(j.position[0],.03,1e-6);EXPECT_NEAR(j.position[3],.09,1e-6);EXPECT_NEAR(j.position[6],0.,1e-6);
++ EXPECT_EQ(i.getFootForcesRaw(),(std::array<int16_t,4>{11,13,10,12}));EXPECT_DOUBLE_EQ(im.orientation.w,1.);
++ auto original=j.header.stamp;i.lowStateHandler(&s);ASSERT_TRUE(read(i,j,im));EXPECT_EQ(original,j.header.stamp);
++ // A new callback arriving before ROS publication must not change consumed forces.
++ auto next=sample(102);next.foot_force()[1]=90;i.lowStateHandler(&next);EXPECT_EQ(i.getFootForcesRaw()[0],11);
++ ASSERT_TRUE(read(i,j,im));EXPECT_EQ(i.getFootForcesRaw()[0],90);
++}
++TEST(CpgSensors, RepeatedMcuPacketCannotRefreshAndFaultLatches){
++ SensingInterface i;i.enableCpgGuard();auto s=sample(100);i.lowStateHandler(&s);
++ sensor_msgs::msg::JointState j;sensor_msgs::msg::Imu im;ASSERT_TRUE(read(i,j,im));
++ for(int n=0;n<6;++n){std::this_thread::sleep_for(std::chrono::milliseconds(10));i.lowStateHandler(&s);}
++ EXPECT_FALSE(read(i,j,im));EXPECT_TRUE(i.cpgFaulted());s.tick()=200;i.lowStateHandler(&s);EXPECT_FALSE(read(i,j,im));
++}
++TEST(CpgSensors, McuWrapAllowedRegressionRejected){
++ SensingInterface i;i.enableCpgGuard();auto s=sample(0xfffffffe);i.lowStateHandler(&s);
++ sensor_msgs::msg::JointState j;sensor_msgs::msg::Imu im;ASSERT_TRUE(read(i,j,im));
++ s.tick()=1;i.lowStateHandler(&s);EXPECT_TRUE(read(i,j,im));
++ s.tick()=0;i.lowStateHandler(&s);EXPECT_FALSE(read(i,j,im));
++}
++
++TEST(CpgSensors, ImpossibleEncoderRejectedBeforeCommand){
++ SensingInterface i;i.enableCpgGuard();auto s=sample(100);s.motor_state()[0].q()=100;
++ i.lowStateHandler(&s);sensor_msgs::msg::JointState j;sensor_msgs::msg::Imu im;
++ EXPECT_FALSE(read(i,j,im));EXPECT_TRUE(i.cpgFaulted());
++}
+diff --git a/scripts/cpg_gazebo.py b/scripts/cpg_gazebo.py
+new file mode 100644
+index 00000000..61440964
+--- /dev/null
++++ b/scripts/cpg_gazebo.py
+@@ -0,0 +1,182 @@
++#!/usr/bin/env python3
++"""Gazebo-only CPG sensor bridge. Ground truth is logged, never fed to the actor.
++
++Requires robot_driver controller=cpg, is_hardware=false, and the portable
++75-observation runtime. Commands go through robot_driver's READY gate.
++"""
++import argparse
++import json
++import math
++from pathlib import Path
++import select
++import subprocess
++import sys
++import time
++from types import SimpleNamespace
++
++
++
++def toe_vertical_force(message, toe):
++    """Gazebo contact wrench on the toe, independent of collision ordering."""
++    force = 0.
++    for contact in message.contacts:
++        if f'toe{toe}::' in contact.collision1.name:
++            force += sum(w.body_1_wrench.force.z for w in contact.wrenches)
++        elif f'toe{toe}::' in contact.collision2.name:
++            force += sum(w.body_2_wrench.force.z for w in contact.wrenches)
++    if not math.isfinite(force):
++        raise ValueError('Nonfinite contact force')
++    return abs(force)
++
++
++def contact_forces_at(contacts, now):
++    # Gazebo emits no per-toe updates during flight; expire old forces.
++    return [contacts[i][0] if -.01 <= now-contacts[i][1] <= .01 else 0.
++            for i in range(4)]
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--conga-root', type=Path, required=True)
++    p.add_argument('--selection', type=Path, required=True)
++    p.add_argument('--policy-python', required=True)
++    p.add_argument('--robot-ns', default='/robot_1')
++    p.add_argument('--trace', type=Path, required=True)
++    args, ros_args = p.parse_known_args()
++    sys.path.insert(0, str(args.conga_root))
++    from deploy.cpg.quad_sdk import decode_state, encode_command
++    from deploy.cpg.safety import CommandEnvelope
++    import rclpy
++    from rclpy.node import Node
++    from rclpy.qos import qos_profile_sensor_data
++    from sensor_msgs.msg import JointState, Imu
++    from geometry_msgs.msg import Twist
++    from std_msgs.msg import UInt8, String, Bool
++    from ros_gz_interfaces.msg import Contacts
++    from quad_msgs.msg import LegCommandArray, LegCommand, MotorCommand, RobotState
++    rclpy.init(args=ros_args)
++
++    class Bridge(Node):
++        def __init__(self):
++            super().__init__('cpg_gazebo')
++            if not self.get_parameter('use_sim_time').value:
++                raise RuntimeError('Gazebo adapter requires use_sim_time=true')
++            self.worker = subprocess.Popen(
++                [args.policy_python, str(args.conga_root/'scripts/cpg_worker.py'),
++                 '--selection', str(args.selection)], stdin=subprocess.PIPE,
++                stdout=subprocess.PIPE, text=True, bufsize=1)
++            if not select.select([self.worker.stdout], [], [], 20)[0]:
++                self.close_worker(); raise RuntimeError('Policy initialization timeout')
++            if not json.loads(self.worker.stdout.readline()).get('ready'):
++                self.close_worker(); raise RuntimeError('Policy initialization failed')
++            self.envelope=CommandEnvelope(json.loads(args.selection.read_text()))
++            self.limits = json.loads(args.selection.read_text()).get('joystick_limits', [.05,.04,.1])
++            if len(self.limits)!=3 or not all(math.isfinite(x) and x>=0 for x in self.limits):
++                self.close_worker(); raise ValueError('Invalid command limits')
++            self.latest = {}; self.contacts = {}; self.truth = None
++            self.mode = 0; self.velocity = [0.,0.,0.]; self.command_time = -math.inf
++            self.stand_requested=False
++            self.tick = 0; self.previous = None; self.started = False; self.fault = None
++            args.trace.parent.mkdir(parents=True, exist_ok=True)
++            self.trace = args.trace.open('w', buffering=1)
++            ns = args.robot_ns.rstrip('/')
++            self.pub = self.create_publisher(LegCommandArray, ns+'/cpg/target', 1)
++            self.status = self.create_publisher(String, ns+'/cpg/status', 1)
++            self.create_subscription(JointState, ns+'/joint_states', lambda m:self.latest.update(joints=m), qos_profile_sensor_data)
++            self.create_subscription(Imu, ns+'/imu', lambda m:self.latest.update(imu=m), qos_profile_sensor_data)
++            for i in range(4):
++                self.create_subscription(Contacts, ns+f'/gazebo/toe{i}_contact_states',
++                    lambda m,i=i:self.contact(i,m), qos_profile_sensor_data)
++            self.create_subscription(UInt8, ns+'/state/control_mode', self.mode_callback, 1)
++            self.create_subscription(Bool,ns+'/cpg/stand',lambda m:setattr(self,'stand_requested',self.stand_requested or m.data),1)
++            self.create_subscription(String,ns+'/cpg/fault',lambda m:self.fail(m.data),1)
++            self.create_subscription(Twist, ns+'/cmd_vel', self.command, 1)
++            self.create_subscription(RobotState, ns+'/state/ground_truth', lambda m:setattr(self,'truth',m), qos_profile_sensor_data)
++            self.create_timer(.02, self.update)
++            self.get_logger().info('75-input CPG ready; waiting for robot_driver READY (mode 1)')
++
++        def mode_callback(self, msg):
++            self.mode = msg.data
++            if self.started and self.mode != 1 and not self.fault:
++                self.fail('Left READY; restart CPG runtime before rearming')
++
++        def now(self): return self.get_clock().now().nanoseconds*1e-9
++
++        def command(self, msg):
++            values = [msg.linear.x, msg.linear.y, msg.angular.z]
++            if not all(math.isfinite(v) for v in values):
++                self.fail('Nonfinite command'); return
++            self.velocity = self.envelope.apply(values)
++            self.command_time = self.now()
++
++        def contact(self, i, msg):
++            try:
++                self.contacts[i] = (toe_vertical_force(msg, i), self.stamp(msg))
++            except ValueError as error:
++                self.fail(str(error))
++
++        @staticmethod
++        def stamp(msg): return msg.header.stamp.sec+msg.header.stamp.nanosec*1e-9
++
++        def fail(self, reason):
++            if self.fault: return
++            self.fault = reason
++            self.get_logger().error('CPG fault latched: '+reason)
++            self.status.publish(String(data=json.dumps({'fault':reason})))
++            self.trace.write(json.dumps({'time':self.now(),'fault':reason})+'\n')
++
++        def update(self):
++            if self.fault or self.mode != 1: return
++            now = self.now()
++            if len(self.latest)!=2 or len(self.contacts)!=4: return
++            # Gazebo contact sensors publish events while touching; an airborne
++            # foot can stop publishing. Expire each force after 10 ms, while
++            # requiring a live contact stream from at least one support foot.
++            stamps = [self.stamp(m) for m in self.latest.values()]+[max(x[1] for x in self.contacts.values())]
++            if any(not -.01 <= now-s <= .05 for s in stamps) or max(stamps)-min(stamps)>.025:
++                if self.started: self.fail('Stale or unsynchronized Gazebo sensors: '+str(dict(zip(['joints','imu','latest_contact'],[now-s for s in stamps]))))
++                return
++            if self.previous is not None and not .01 <= now-self.previous <= .04:
++                self.fail('Missed simulation control tick'); return
++            try:
++                force = SimpleNamespace(foot_force_raw=contact_forces_at(self.contacts, now))
++                sensor = decode_state(self.latest['joints'], self.latest['imu'], force, self.tick*.02)
++                velocity = self.velocity if now-self.command_time < .25 else [0.,0.,0.]
++                request = {'sensor':sensor, 'velocity':velocity, 'telemetry':True,'request_stand':self.stand_requested}
++                start = time.monotonic()
++                self.worker.stdin.write(json.dumps(request)+'\n'); self.worker.stdin.flush()
++                if not select.select([self.worker.stdout],[],[],.05)[0]:
++                    raise RuntimeError('Policy worker exceeded 50 ms wall deadline (simulation)')
++                reply = json.loads(self.worker.stdout.readline())
++                if 'fault' in reply: raise RuntimeError(reply['fault'])
++                self.pub.publish(encode_command(reply['target_sdk'],reply['kp_sdk'],reply['kd_sdk'],
++                    LegCommandArray,LegCommand,MotorCommand,self.get_clock().now().to_msg()))
++                row = dict(time=now, tick=self.tick, sensor=sensor, velocity=velocity,
++                           contact_age=[now-self.contacts[i][1] for i in range(4)],
++                           worker_ms=1000*(time.monotonic()-start), **reply)
++                if self.truth:
++                    b=self.truth.body
++                    row['truth_position']=[b.pose.position.x,b.pose.position.y,b.pose.position.z]
++                    row['truth_velocity']=[b.twist.linear.x,b.twist.linear.y,b.twist.linear.z]
++                    row['truth_stamp']=self.stamp(self.truth)
++                    row['truth_feet']=[[f.position.x,f.position.y,f.position.z] for f in self.truth.feet.feet]
++                    row['truth_foot_velocities']=[[f.velocity.x,f.velocity.y,f.velocity.z] for f in self.truth.feet.feet]
++                self.trace.write(json.dumps(row)+'\n')
++                self.tick+=1; self.previous=now; self.started=True
++                if self.tick%50==0:
++                    self.status.publish(String(data=json.dumps({'ticks':self.tick,'ready':reply['ready'],'dance_time':reply['dance_time'],'standing':reply.get('standing',False),'stand_requested':reply.get('stand_requested',False)})))
++            except Exception as e: self.fail(str(e))
++
++        def close_worker(self):
++            if self.worker.poll() is None:
++                self.worker.terminate()
++                try: self.worker.wait(timeout=2)
++                except subprocess.TimeoutExpired: self.worker.kill(); self.worker.wait()
++
++    node=Bridge()
++    try: rclpy.spin(node)
++    except (KeyboardInterrupt,rclpy.executors.ExternalShutdownException): pass
++    finally: node.close_worker(); node.trace.close(); node.destroy_node(); rclpy.try_shutdown()
++
++
++if __name__=='__main__': main()
+diff --git a/scripts/test_cpg_gazebo.py b/scripts/test_cpg_gazebo.py
+new file mode 100644
+index 00000000..172fa727
+--- /dev/null
++++ b/scripts/test_cpg_gazebo.py
+@@ -0,0 +1,29 @@
++"""Pure tests of Gazebo force decoding; no ROS initialization or simulator."""
++import importlib.util
++from pathlib import Path
++from types import SimpleNamespace as NS
++import unittest
++spec=importlib.util.spec_from_file_location('bridge',Path(__file__).with_name('cpg_gazebo.py'))
++bridge=importlib.util.module_from_spec(spec);spec.loader.exec_module(bridge)
++
++class ContactTests(unittest.TestCase):
++    def message(self, reversed=False):
++        toe='robot_1::toe0::toe0_collision'; ground='flat::body::collision'
++        return NS(contacts=[NS(collision1=NS(name=ground if reversed else toe),
++            collision2=NS(name=toe if reversed else ground),
++            wrenches=[NS(body_1_wrench=NS(force=NS(z=-20. if reversed else 20.)),
++                         body_2_wrench=NS(force=NS(z=20. if reversed else -20.)))])])
++    def test_collision_order_and_unrelated_foot(self):
++        for reverse in (False,True):
++            self.assertEqual(bridge.toe_vertical_force(self.message(reverse),0),20.)
++            self.assertEqual(bridge.toe_vertical_force(self.message(reverse),1),0.)
++    def test_empty_contact(self):
++        self.assertEqual(bridge.toe_vertical_force(NS(contacts=[]),0),0.)
++    def test_airborne_event_expiry_and_support(self):
++        contacts={0:(20.,.9),1:(30.,.999),2:(40.,.999),3:(20.,.9)}
++        self.assertEqual(bridge.contact_forces_at(contacts,1.),[0.,30.,40.,0.])
++    def test_nonfinite_rejected(self):
++        m=self.message();m.contacts[0].wrenches[0].body_1_wrench.force.z=float('nan')
++        with self.assertRaises(ValueError):bridge.toe_vertical_force(m,0)
++
++if __name__=='__main__':unittest.main()
+diff --git a/scripts/test_cpg_guard.cpp b/scripts/test_cpg_guard.cpp
+new file mode 100644
+index 00000000..3533d509
+--- /dev/null
++++ b/scripts/test_cpg_guard.cpp
+@@ -0,0 +1,21 @@
++#include "robot_driver/controllers/cpg_command_guard.hpp"
++#include <cassert>
++#include <iostream>
++#include <random>
++#include <limits>
++int main(){
++ std::mt19937 gen(9411);std::uniform_real_distribution<double> pos(-3,3),vel(-35,35),gain(0,60),kd(0,5),ff(-40,40);
++ int limited=0;
++ for(int i=0;i<100000;++i){
++  cpg_guard::Motor m{pos(gen),vel(gen),gain(gen),kd(gen),ff(gen)};
++  double q=pos(gen),dq=vel(gen),raw=cpg_guard::effort(m,q,dq);
++  double factor=cpg_guard::limit(m,q,dq),after=cpg_guard::effort(m,q,dq);
++  double bound=std::min(18.,(raw*dq>=0?20.2:23.4)*std::clamp((30-std::abs(dq))/16.5,0.,1.));
++  assert(std::abs(after)<=bound+1e-10);assert(std::abs(after-raw*factor)<1e-10);
++  assert(factor>=0&&factor<=1);limited+=factor<1;
++ }
++ cpg_guard::Motor bad{0,0,25,.5,0};bool threw=false;
++ try {cpg_guard::limit(bad,std::numeric_limits<double>::quiet_NaN(),0);}catch(...){threw=true;}assert(threw);
++ assert(!cpg_guard::targetRange(0,2));assert(cpg_guard::targetRange(-1.5,2));
++ std::cout<<"100000 sample-based PD+FF envelope checks passed; limited="<<limited<<"\n";
++}

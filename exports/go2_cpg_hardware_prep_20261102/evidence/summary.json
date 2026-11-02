@@ -1,0 +1,4519 @@
+{
+  "status": "complete",
+  "selected": {
+    "checkpoint": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/logs/cpg_targeted45_20261102/timing_train2/training/model_299.pt",
+    "deploy_metadata": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/logs/cpg_targeted45_20261102/timing_300_isaac/params/deploy.yaml",
+    "onnx_export": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/logs/cpg_targeted45_20261102/timing_300_isaac/export/policy.onnx",
+    "jit_export": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/logs/cpg_targeted45_20261102/timing_300_isaac/export/policy.pt",
+    "settings": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/logs/cpg_targeted45_20261102/timing_300_eval_settings.json",
+    "hardware_compatible": false,
+    "joystick_limits": [
+      0.1,
+      0,
+      0.1
+    ],
+    "onnx_sha256": "bfe0617876fd09abc972161193004974975f402927119023e707ac0037df3051",
+    "observation_dim": 75,
+    "actuator_profile": "go2hv_mujoco_v1",
+    "qualification": "Restricted forward/turning candidate; unchanged best75 actor. Hardware gates remain unverified until real calibration/timing. See reports/go2_cpg_hardware6h.md.",
+    "command_min": [
+      0,
+      0,
+      -0.1
+    ],
+    "command_max": [
+      0.1,
+      0,
+      0.1
+    ],
+    "sampled_torque_cap_nm": 18.0
+  },
+  "training": {
+    "main_updates": 1900,
+    "environments": 4096,
+    "transitions": 186777600,
+    "decision": "Keep prior timing+300 actor; all new checkpoints rejected",
+    "gates": [
+      {
+        "label": "restricted_150",
+        "horizon_seconds": 40,
+        "steps_v2": [
+          348,
+          352
+        ],
+        "kicks": [
+          110,
+          112
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.16105218118975945,
+              -0.0001793009501696288
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.018590529586473753,
+              "yaw_rmse_rad_s": 0.01630135603856818,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.001644901513774921,
+              "mean_command_yaw_bias_rad_s": 2.8299599004153077e-05,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    -0.0016441141900082764,
+                    -5.088732880055993e-05,
+                    -2.8299599004153077e-05
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.001644901513774921,
+                  "yaw_bias_rad_s": 2.8299599004153077e-05
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              2.8727249418560503,
+              0.04764597370919133
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.051526898911985496,
+              "yaw_rmse_rad_s": 0.02705623081642834,
+              "nonzero_directional_gain": 0.8339294350829756,
+              "mean_command_xy_bias_m_s": 0.019928929006581372,
+              "mean_command_yaw_bias_rad_s": 0.0002894694954129138,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.1000715327277286,
+                    0.00015445272656153638,
+                    0.0002894694954129138
+                  ],
+                  "planned_mean": [
+                    0.11999986320734024,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.019928929006581372,
+                  "yaw_bias_rad_s": 0.0002894694954129138
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.042766841489108316,
+              -0.06681453171376808
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.021111545972639815,
+              "yaw_rmse_rad_s": 0.09982671773256484,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0018902795621675383,
+              "mean_command_yaw_bias_rad_s": 0.0943668341267548,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    0.00040560309304671507,
+                    -0.0018462510539087684,
+                    0.05563147310133358
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.14999830722808838
+                  ],
+                  "xy_bias_m_s": 0.0018902795621675383,
+                  "yaw_bias_rad_s": 0.0943668341267548
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.03905208243065592,
+              0.06331112585928861
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.020756442283877526,
+              "yaw_rmse_rad_s": 0.09952208111313088,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0021265978067420946,
+              "mean_command_yaw_bias_rad_s": 0.09446026291370663,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.0008269275239752982,
+                    0.0019592368671838456,
+                    -0.05553811882018773
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.0021265978067420946,
+                  "yaw_bias_rad_s": 0.09446026291370663
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              43,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              0.8281491781661912,
+              1.6567022036693313
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1369,
+              "excluded_samples": 631,
+              "steady_samples": 1369,
+              "xy_rmse_m_s": 0.045438410819240264,
+              "yaw_rmse_rad_s": 0.0801954043489231,
+              "nonzero_directional_gain": 0.8021290904144991,
+              "mean_command_xy_bias_m_s": 0.019799661552843982,
+              "mean_command_yaw_bias_rad_s": 0.0717067039364461,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 1369,
+                  "travel_seconds": 27.38,
+                  "actual_mean": [
+                    0.08021291352369544,
+                    -0.0007226476545534754,
+                    0.07829167779744825
+                  ],
+                  "planned_mean": [
+                    0.09999938309192657,
+                    0.0,
+                    0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.019799661552843982,
+                  "yaw_bias_rad_s": 0.0717067039364461
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              0.7801544109507266,
+              -1.6957801797113758
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1345,
+              "excluded_samples": 655,
+              "steady_samples": 1345,
+              "xy_rmse_m_s": 0.04464554166745322,
+              "yaw_rmse_rad_s": 0.07849820340355765,
+              "nonzero_directional_gain": 0.8111566373159674,
+              "mean_command_xy_bias_m_s": 0.018910833045979212,
+              "mean_command_yaw_bias_rad_s": 0.07075662837114313,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 1345,
+                  "travel_seconds": 26.900000000000002,
+                  "actual_mean": [
+                    0.08111566826428766,
+                    0.0010146048568562109,
+                    -0.07924182786855719
+                  ],
+                  "planned_mean": [
+                    0.09999926388263702,
+                    0.0,
+                    -0.14999845623970032
+                  ],
+                  "xy_bias_m_s": 0.018910833045979212,
+                  "yaw_bias_rad_s": 0.07075662837114313
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              1.0234626844861063,
+              0.43828296436593495
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.034722665618906405,
+              "yaw_rmse_rad_s": 0.05041980097110525,
+              "nonzero_directional_gain": 0.6789286413887121,
+              "mean_command_xy_bias_m_s": 0.01927609565294193,
+              "mean_command_yaw_bias_rad_s": 0.04662441278870055,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    0.040735718694089935,
+                    -0.0006778963190133089,
+                    0.028374740825343633
+                  ],
+                  "planned_mean": [
+                    0.05999989062547684,
+                    0.0,
+                    0.07499915361404419
+                  ],
+                  "xy_bias_m_s": 0.01927609565294193,
+                  "yaw_bias_rad_s": 0.04662441278870055
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              1.0165809653320839,
+              -0.4317787740599456
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.03435810044003981,
+              "yaw_rmse_rad_s": 0.05001664372729199,
+              "nonzero_directional_gain": 0.686860180663075,
+              "mean_command_xy_bias_m_s": 0.018806382898298835,
+              "mean_command_yaw_bias_rad_s": 0.046306100656699274,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.04121161105301398,
+                    0.000824044054173628,
+                    -0.0286930902102479
+                  ],
+                  "planned_mean": [
+                    0.05999993160367012,
+                    0.0,
+                    -0.07499919086694717
+                  ],
+                  "xy_bias_m_s": 0.018806382898298835,
+                  "yaw_bias_rad_s": 0.046306100656699274
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          }
+        ]
+      },
+      {
+        "label": "restricted_300",
+        "horizon_seconds": 40,
+        "steps_v2": [
+          342,
+          352
+        ],
+        "kicks": [
+          109,
+          112
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.1723439788582467,
+              0.0007611252004250502
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.018873239096924316,
+              "yaw_rmse_rad_s": 0.01882390737336137,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.002696494668433742,
+              "mean_command_yaw_bias_rad_s": 1.8410800798472603e-05,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    -0.0026963819029410456,
+                    2.4660299747227674e-05,
+                    -1.8410800798472603e-05
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.002696494668433742,
+                  "yaw_bias_rad_s": 1.8410800798472603e-05
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              2.871108229143965,
+              0.030787733707127785
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.05106843591659692,
+              "yaw_rmse_rad_s": 0.038964312311095685,
+              "nonzero_directional_gain": 0.8182378535645747,
+              "mean_command_xy_bias_m_s": 0.021811369622190147,
+              "mean_command_yaw_bias_rad_s": 0.0003029453991155307,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.09818854293577801,
+                    4.639835274905597e-05,
+                    0.0003029453991155307
+                  ],
+                  "planned_mean": [
+                    0.11999986320734024,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.021811369622190147,
+                  "yaw_bias_rad_s": 0.0003029453991155307
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.06716683496382074,
+              -0.04081620029852307
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.021527908311586283,
+              "yaw_rmse_rad_s": 0.10004229593946998,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0007457082482401779,
+              "mean_command_yaw_bias_rad_s": 0.09352460557642317,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    -3.5511410820493705e-06,
+                    -0.0007456997927386397,
+                    0.0564737016516652
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.14999830722808838
+                  ],
+                  "xy_bias_m_s": 0.0007457082482401779,
+                  "yaw_bias_rad_s": 0.09352460557642317
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.06315325995853535,
+              0.03410826814863898
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.02101736762235599,
+              "yaw_rmse_rad_s": 0.09972578346802514,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0008209502287651135,
+              "mean_command_yaw_bias_rad_s": 0.09350911178543375,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.0004096686622440723,
+                    0.0007114287492677284,
+                    -0.0564892699484606
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.0008209502287651135,
+                  "yaw_bias_rad_s": 0.09350911178543375
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              41,
+              44
+            ],
+            "kicks": [
+              12,
+              14
+            ],
+            "net_xy": [
+              0.7703600483953911,
+              1.7076221823517974
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1357,
+              "excluded_samples": 643,
+              "steady_samples": 1357,
+              "xy_rmse_m_s": 0.046373138812409696,
+              "yaw_rmse_rad_s": 0.08411202154818377,
+              "nonzero_directional_gain": 0.7848363887852478,
+              "mean_command_xy_bias_m_s": 0.021556503114946883,
+              "mean_command_yaw_bias_rad_s": 0.07317485440712074,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 1357,
+                  "travel_seconds": 27.14,
+                  "actual_mean": [
+                    0.07848364326413977,
+                    -0.0013260207691471728,
+                    0.076823557129096
+                  ],
+                  "planned_mean": [
+                    0.0999993234872818,
+                    0.0,
+                    0.14999841153621674
+                  ],
+                  "xy_bias_m_s": 0.021556503114946883,
+                  "yaw_bias_rad_s": 0.07317485440712074
+                }
+              }
+            },
+            "steps_v2": [
+              41,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              41,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              0.788217643768051,
+              -1.6366565676244746
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1341,
+              "excluded_samples": 659,
+              "steady_samples": 1341,
+              "xy_rmse_m_s": 0.04658867482477399,
+              "yaw_rmse_rad_s": 0.08384486990887885,
+              "nonzero_directional_gain": 0.7808776042047374,
+              "mean_command_xy_bias_m_s": 0.021922477901323047,
+              "mean_command_yaw_bias_rad_s": 0.07320235019120772,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 1341,
+                  "travel_seconds": 26.82,
+                  "actual_mean": [
+                    0.07808776478396744,
+                    0.0006944235759532773,
+                    -0.0767961209496538
+                  ],
+                  "planned_mean": [
+                    0.09999924153089523,
+                    0.0,
+                    -0.1499984711408615
+                  ],
+                  "xy_bias_m_s": 0.021922477901323047,
+                  "yaw_bias_rad_s": 0.07320235019120772
+                }
+              }
+            },
+            "steps_v2": [
+              41,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9985743580220756,
+              0.5307614766803057
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.03644695545562893,
+              "yaw_rmse_rad_s": 0.0516389103536215,
+              "nonzero_directional_gain": 0.6766691335301169,
+              "mean_command_xy_bias_m_s": 0.019399787543281866,
+              "mean_command_yaw_bias_rad_s": 0.04479172524659275,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.040600148221872794,
+                    1.2706841247556987e-05,
+                    0.030207465620354423
+                  ],
+                  "planned_mean": [
+                    0.05999993160367012,
+                    0.0,
+                    0.07499919086694717
+                  ],
+                  "xy_bias_m_s": 0.019399787543281866,
+                  "yaw_bias_rad_s": 0.04479172524659275
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9919043796375195,
+              -0.5294025540800651
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1342,
+              "excluded_samples": 658,
+              "steady_samples": 1342,
+              "xy_rmse_m_s": 0.03611664417003817,
+              "yaw_rmse_rad_s": 0.051106125592774755,
+              "nonzero_directional_gain": 0.6856156851598701,
+              "mean_command_xy_bias_m_s": 0.01886310867363943,
+              "mean_command_yaw_bias_rad_s": 0.044273766267721545,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 1342,
+                  "travel_seconds": 26.84,
+                  "actual_mean": [
+                    0.04113694132243541,
+                    5.272569416177452e-05,
+                    -0.03072546930270921
+                  ],
+                  "planned_mean": [
+                    0.0599999763071537,
+                    0.0,
+                    -0.07499923557043076
+                  ],
+                  "xy_bias_m_s": 0.01886310867363943,
+                  "yaw_bias_rad_s": 0.044273766267721545
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          }
+        ]
+      },
+      {
+        "label": "restricted_600",
+        "horizon_seconds": 40,
+        "steps_v2": [
+          339,
+          352
+        ],
+        "kicks": [
+          109,
+          112
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.11746873836943102,
+              3.662372982766704e-05
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.018647844583513682,
+              "yaw_rmse_rad_s": 0.01813218486398181,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0011334431048469185,
+              "mean_command_yaw_bias_rad_s": 7.91035748420527e-05,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    -0.0011332640934548844,
+                    -2.0143644429496575e-05,
+                    7.91035748420527e-05
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.0011334431048469185,
+                  "yaw_bias_rad_s": 7.91035748420527e-05
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              2.7598161325213213,
+              0.056830717374963625
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1345,
+              "excluded_samples": 655,
+              "steady_samples": 1345,
+              "xy_rmse_m_s": 0.053219476417959474,
+              "yaw_rmse_rad_s": 0.04486599137350977,
+              "nonzero_directional_gain": 0.7787476514905541,
+              "mean_command_xy_bias_m_s": 0.026552820863948397,
+              "mean_command_yaw_bias_rad_s": 0.0006193701612385575,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 1345,
+                  "travel_seconds": 26.900000000000002,
+                  "actual_mean": [
+                    0.09344971866237665,
+                    0.0003717044378086612,
+                    0.0006193701612385575
+                  ],
+                  "planned_mean": [
+                    0.11999993771314621,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.026552820863948397,
+                  "yaw_bias_rad_s": 0.0006193701612385575
+                }
+              }
+            },
+            "steps_v2": [
+              41,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.018930999082014458,
+              -0.027639518788153974
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.021433478311330977,
+              "yaw_rmse_rad_s": 0.09972025338630353,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.002093819263414029,
+              "mean_command_yaw_bias_rad_s": 0.09328476162973741,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    0.0011050083662785734,
+                    -0.0017784925128597044,
+                    0.05671354559835097
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.14999830722808838
+                  ],
+                  "xy_bias_m_s": 0.002093819263414029,
+                  "yaw_bias_rad_s": 0.09328476162973741
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.012565379101201472,
+              0.02491167303649096
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.02060233071287605,
+              "yaw_rmse_rad_s": 0.0997383538187101,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.00221942724731016,
+              "mean_command_yaw_bias_rad_s": 0.09347950765679795,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.0015031237189917885,
+                    0.0016329349011846889,
+                    -0.056518874077096395
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.00221942724731016,
+                  "yaw_bias_rad_s": 0.09347950765679795
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              0.6443454366973373,
+              1.675412263634529
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1369,
+              "excluded_samples": 631,
+              "steady_samples": 1369,
+              "xy_rmse_m_s": 0.04916477301691859,
+              "yaw_rmse_rad_s": 0.08439350788761887,
+              "nonzero_directional_gain": 0.7497965444034905,
+              "mean_command_xy_bias_m_s": 0.025039701263612095,
+              "mean_command_yaw_bias_rad_s": 0.07049386595695896,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 1369,
+                  "travel_seconds": 27.38,
+                  "actual_mean": [
+                    0.07497965863016376,
+                    -0.0010000136141096324,
+                    0.07950451577693539
+                  ],
+                  "planned_mean": [
+                    0.09999938309192657,
+                    0.0,
+                    0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.025039701263612095,
+                  "yaw_bias_rad_s": 0.07049386595695896
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              0.6855554415029217,
+              -1.6500985651396263
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1345,
+              "excluded_samples": 655,
+              "steady_samples": 1345,
+              "xy_rmse_m_s": 0.04845797361894591,
+              "yaw_rmse_rad_s": 0.08388624012592388,
+              "nonzero_directional_gain": 0.7588859571113346,
+              "mean_command_xy_bias_m_s": 0.024135348137998072,
+              "mean_command_yaw_bias_rad_s": 0.0702009462890579,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 1345,
+                  "travel_seconds": 26.900000000000002,
+                  "actual_mean": [
+                    0.07588859995173908,
+                    0.001091290315939725,
+                    -0.07979750995064241
+                  ],
+                  "planned_mean": [
+                    0.09999926388263702,
+                    0.0,
+                    -0.14999845623970032
+                  ],
+                  "xy_bias_m_s": 0.024135348137998072,
+                  "yaw_bias_rad_s": 0.0702009462890579
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              41,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              1.0030021796715018,
+              0.4074818736648161
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1354,
+              "excluded_samples": 646,
+              "steady_samples": 1354,
+              "xy_rmse_m_s": 0.036314482432823036,
+              "yaw_rmse_rad_s": 0.05410356970678135,
+              "nonzero_directional_gain": 0.6561437045604657,
+              "mean_command_xy_bias_m_s": 0.02065830228308787,
+              "mean_command_yaw_bias_rad_s": 0.047425808579148784,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 1354,
+                  "travel_seconds": 27.080000000000002,
+                  "actual_mean": [
+                    0.03936862247732172,
+                    -0.001055279422995775,
+                    0.02757340463954018
+                  ],
+                  "planned_mean": [
+                    0.05999995395541191,
+                    0.0,
+                    0.07499921321868896
+                  ],
+                  "xy_bias_m_s": 0.02065830228308787,
+                  "yaw_bias_rad_s": 0.047425808579148784
+                }
+              }
+            },
+            "steps_v2": [
+              41,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              41,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9968678313443041,
+              -0.40590743165237025
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1330,
+              "excluded_samples": 670,
+              "steady_samples": 1330,
+              "xy_rmse_m_s": 0.03615982927739404,
+              "yaw_rmse_rad_s": 0.05381175372141261,
+              "nonzero_directional_gain": 0.6629220503225152,
+              "mean_command_xy_bias_m_s": 0.020247127156352986,
+              "mean_command_yaw_bias_rad_s": 0.04702727969512765,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 1330,
+                  "travel_seconds": 26.6,
+                  "actual_mean": [
+                    0.03977532322514896,
+                    0.0009533165112892409,
+                    -0.0279719782270449
+                  ],
+                  "planned_mean": [
+                    0.059999994933605194,
+                    0.0,
+                    -0.07499925792217255
+                  ],
+                  "xy_bias_m_s": 0.020247127156352986,
+                  "yaw_bias_rad_s": 0.04702727969512765
+                }
+              }
+            },
+            "steps_v2": [
+              41,
+              44
+            ]
+          }
+        ]
+      },
+      {
+        "label": "conservative_100",
+        "horizon_seconds": 40,
+        "steps_v2": [
+          337,
+          352
+        ],
+        "kicks": [
+          107,
+          112
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.18027887649467572,
+              0.0037362019024720573
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.019441075131450894,
+              "yaw_rmse_rad_s": 0.018124957273592646,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.001617626549274194,
+              "mean_command_yaw_bias_rad_s": 9.612138831933312e-05,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    -0.0016171605899947636,
+                    3.882369230926447e-05,
+                    -9.612138831933312e-05
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.001617626549274194,
+                  "yaw_bias_rad_s": 9.612138831933312e-05
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              2.698821207548556,
+              0.04013810779669047
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.05697505997113791,
+              "yaw_rmse_rad_s": 0.037292468277490894,
+              "nonzero_directional_gain": 0.7725875761376177,
+              "mean_command_xy_bias_m_s": 0.027289604456521312,
+              "mean_command_yaw_bias_rad_s": 0.0002026624103653602,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.09271050961619975,
+                    0.0001170126963016569,
+                    0.0002026624103653602
+                  ],
+                  "planned_mean": [
+                    0.11999986320734024,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.027289604456521312,
+                  "yaw_bias_rad_s": 0.0002026624103653602
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.06121058849870782,
+              -0.13353354989218155
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.021756378798078603,
+              "yaw_rmse_rad_s": 0.10109537535865266,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0030259343716172076,
+              "mean_command_yaw_bias_rad_s": 0.09516379919947472,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    -0.0012911772932185709,
+                    -0.0027366293170269134,
+                    0.05483450802861366
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.14999830722808838
+                  ],
+                  "xy_bias_m_s": 0.0030259343716172076,
+                  "yaw_bias_rad_s": 0.09516379919947472
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.0580661622828975,
+              0.12862626533551583
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.02148955673228792,
+              "yaw_rmse_rad_s": 0.10087529571353297,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0029536486737234747,
+              "mean_command_yaw_bias_rad_s": 0.09536541301319426,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    -0.0008250350728626518,
+                    0.0028360813839406938,
+                    -0.054632968720700094
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.0029536486737234747,
+                  "yaw_bias_rad_s": 0.09536541301319426
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              40,
+              44
+            ],
+            "kicks": [
+              11,
+              14
+            ],
+            "net_xy": [
+              0.7132188882100889,
+              1.590662344217076
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1327,
+              "excluded_samples": 673,
+              "steady_samples": 1327,
+              "xy_rmse_m_s": 0.05177379174529249,
+              "yaw_rmse_rad_s": 0.08297141158467132,
+              "nonzero_directional_gain": 0.7621941445352866,
+              "mean_command_xy_bias_m_s": 0.023779754771505315,
+              "mean_command_yaw_bias_rad_s": 0.07096869536992,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 1327,
+                  "travel_seconds": 26.54,
+                  "actual_mean": [
+                    0.07621941871262032,
+                    -1.7526795490928684e-05,
+                    0.0790298204744251
+                  ],
+                  "planned_mean": [
+                    0.09999916702508926,
+                    0.0,
+                    0.1499985158443451
+                  ],
+                  "xy_bias_m_s": 0.023779754771505315,
+                  "yaw_bias_rad_s": 0.07096869536992
+                }
+              }
+            },
+            "steps_v2": [
+              38,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              12,
+              14
+            ],
+            "net_xy": [
+              0.8125668638789861,
+              -1.5447273761458997
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1324,
+              "excluded_samples": 676,
+              "steady_samples": 1324,
+              "xy_rmse_m_s": 0.04941879025878754,
+              "yaw_rmse_rad_s": 0.08209275708905756,
+              "nonzero_directional_gain": 0.7689856741418472,
+              "mean_command_xy_bias_m_s": 0.023130693215516137,
+              "mean_command_yaw_bias_rad_s": 0.07171856445196,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 1324,
+                  "travel_seconds": 26.48,
+                  "actual_mean": [
+                    0.07689857171122692,
+                    0.0011798954303887566,
+                    -0.07827996629354629
+                  ],
+                  "planned_mean": [
+                    0.09999915212392807,
+                    0.0,
+                    -0.1499985307455063
+                  ],
+                  "xy_bias_m_s": 0.023130693215516137,
+                  "yaw_bias_rad_s": 0.07171856445196
+                }
+              }
+            },
+            "steps_v2": [
+              39,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9310853306434561,
+              0.4257838460195122
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.03761596330129307,
+              "yaw_rmse_rad_s": 0.05292601305729224,
+              "nonzero_directional_gain": 0.6159944207616654,
+              "mean_command_xy_bias_m_s": 0.023055830758947817,
+              "mean_command_yaw_bias_rad_s": 0.04702523115430586,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.0369596654369298,
+                    -0.0008470342088756897,
+                    0.027973959712641314
+                  ],
+                  "planned_mean": [
+                    0.05999993160367012,
+                    0.0,
+                    0.07499919086694717
+                  ],
+                  "xy_bias_m_s": 0.023055830758947817,
+                  "yaw_bias_rad_s": 0.04702523115430586
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9239667666647764,
+              -0.4215843528215016
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1342,
+              "excluded_samples": 658,
+              "steady_samples": 1342,
+              "xy_rmse_m_s": 0.037268424775934714,
+              "yaw_rmse_rad_s": 0.05247087517790567,
+              "nonzero_directional_gain": 0.6232638074632448,
+              "mean_command_xy_bias_m_s": 0.02262601316168066,
+              "mean_command_yaw_bias_rad_s": 0.046681626040340506,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 1342,
+                  "travel_seconds": 26.84,
+                  "actual_mean": [
+                    0.03739582864128118,
+                    0.0009944746814153852,
+                    -0.02831760953009025
+                  ],
+                  "planned_mean": [
+                    0.0599999763071537,
+                    0.0,
+                    -0.07499923557043076
+                  ],
+                  "xy_bias_m_s": 0.02262601316168066,
+                  "yaw_bias_rad_s": 0.046681626040340506
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          }
+        ]
+      },
+      {
+        "label": "conservative_300",
+        "horizon_seconds": 40,
+        "steps_v2": [
+          345,
+          352
+        ],
+        "kicks": [
+          111,
+          112
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.10184500291344181,
+              0.0033359941562620898
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.02026406465721279,
+              "yaw_rmse_rad_s": 0.019148270939475024,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0005029981353120731,
+              "mean_command_yaw_bias_rad_s": 4.177970836470003e-06,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    0.0004952511481506647,
+                    8.793989073720146e-05,
+                    -4.177970836470003e-06
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.0005029981353120731,
+                  "yaw_bias_rad_s": 4.177970836470003e-06
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              41,
+              44
+            ],
+            "kicks": [
+              13,
+              14
+            ],
+            "net_xy": [
+              2.644370758819911,
+              -0.011990623994968981
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1345,
+              "excluded_samples": 655,
+              "steady_samples": 1345,
+              "xy_rmse_m_s": 0.05921716522774265,
+              "yaw_rmse_rad_s": 0.04033699516808942,
+              "nonzero_directional_gain": 0.7504411566997439,
+              "mean_command_xy_bias_m_s": 0.02995147743855256,
+              "mean_command_yaw_bias_rad_s": 0.00018944500729838902,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 1345,
+                  "travel_seconds": 26.900000000000002,
+                  "actual_mean": [
+                    0.09005293926990474,
+                    -0.0005179623467162113,
+                    -0.00018944500729838902
+                  ],
+                  "planned_mean": [
+                    0.11999993771314621,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.02995147743855256,
+                  "yaw_bias_rad_s": 0.00018944500729838902
+                }
+              }
+            },
+            "steps_v2": [
+              41,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.006115347407234325,
+              -0.07125920225479317
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.022726069802302573,
+              "yaw_rmse_rad_s": 0.10117582019424566,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0029624568510616374,
+              "mean_command_yaw_bias_rad_s": 0.0940925567516706,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    0.0010638636613074775,
+                    -0.0027648408099837287,
+                    0.055905750476417784
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.14999830722808838
+                  ],
+                  "xy_bias_m_s": 0.0029624568510616374,
+                  "yaw_bias_rad_s": 0.0940925567516706
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              -0.001918329092964744,
+              0.06902113656634869
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.02246164260462362,
+              "yaw_rmse_rad_s": 0.10064427054042781,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.003192957216503214,
+              "mean_command_yaw_bias_rad_s": 0.09413179086407136,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.0012982754754616902,
+                    0.002917097286042184,
+                    -0.055866590869822985
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.003192957216503214,
+                  "yaw_bias_rad_s": 0.09413179086407136
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.8539678314025084,
+              1.6338421567584749
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1390,
+              "excluded_samples": 610,
+              "steady_samples": 1390,
+              "xy_rmse_m_s": 0.04698077734232338,
+              "yaw_rmse_rad_s": 0.08669039157764967,
+              "nonzero_directional_gain": 0.7602263119394079,
+              "mean_command_xy_bias_m_s": 0.024005150422631568,
+              "mean_command_yaw_bias_rad_s": 0.07540306909599478,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 1390,
+                  "travel_seconds": 27.8,
+                  "actual_mean": [
+                    0.07602263544203625,
+                    -0.00116525404801876,
+                    0.0745952381320936
+                  ],
+                  "planned_mean": [
+                    0.09999948740005493,
+                    0.0,
+                    0.14999830722808838
+                  ],
+                  "xy_bias_m_s": 0.024005150422631568,
+                  "yaw_bias_rad_s": 0.07540306909599478
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              44,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.8844391928233214,
+              -1.6035326156824548
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.04685686934235847,
+              "yaw_rmse_rad_s": 0.08602805547188756,
+              "nonzero_directional_gain": 0.7643394527096226,
+              "mean_command_xy_bias_m_s": 0.023610150124734917,
+              "mean_command_yaw_bias_rad_s": 0.07525519110542207,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.07643394954204179,
+                    0.0014526640433735658,
+                    -0.07474319062847228
+                  ],
+                  "planned_mean": [
+                    0.09999936819076538,
+                    0.0,
+                    -0.14999838173389435
+                  ],
+                  "xy_bias_m_s": 0.023610150124734917,
+                  "yaw_bias_rad_s": 0.07525519110542207
+                }
+              }
+            },
+            "steps_v2": [
+              44,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9985489285748211,
+              0.4070842096773894
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1366,
+              "excluded_samples": 634,
+              "steady_samples": 1366,
+              "xy_rmse_m_s": 0.03709685630831561,
+              "yaw_rmse_rad_s": 0.05364323066225908,
+              "nonzero_directional_gain": 0.6396640053865988,
+              "mean_command_xy_bias_m_s": 0.021630499939869527,
+              "mean_command_yaw_bias_rad_s": 0.047506199879851385,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 1366,
+                  "travel_seconds": 27.32,
+                  "actual_mean": [
+                    0.038379840521773775,
+                    -0.0006709614439010491,
+                    0.027492990987095785
+                  ],
+                  "planned_mean": [
+                    0.05999993160367012,
+                    0.0,
+                    0.07499919086694717
+                  ],
+                  "xy_bias_m_s": 0.021630499939869527,
+                  "yaw_bias_rad_s": 0.047506199879851385
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              42,
+              44
+            ],
+            "kicks": [
+              14,
+              14
+            ],
+            "net_xy": [
+              0.9888046875959813,
+              -0.4004483211335365
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 1342,
+              "excluded_samples": 658,
+              "steady_samples": 1342,
+              "xy_rmse_m_s": 0.03702863857851699,
+              "yaw_rmse_rad_s": 0.053271488836825705,
+              "nonzero_directional_gain": 0.6431295604573839,
+              "mean_command_xy_bias_m_s": 0.021429010395960218,
+              "mean_command_yaw_bias_rad_s": 0.04724247608291095,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 1342,
+                  "travel_seconds": 26.84,
+                  "actual_mean": [
+                    0.038587773827096744,
+                    0.0008485702700506359,
+                    -0.027756759487519805
+                  ],
+                  "planned_mean": [
+                    0.0599999763071537,
+                    0.0,
+                    -0.07499923557043076
+                  ],
+                  "xy_bias_m_s": 0.021429010395960218,
+                  "yaw_bias_rad_s": 0.04724247608291095
+                }
+              }
+            },
+            "steps_v2": [
+              42,
+              44
+            ]
+          }
+        ]
+      },
+      {
+        "label": "sustained_200",
+        "horizon_seconds": 90,
+        "steps_v2": [
+          784,
+          800
+        ],
+        "kicks": [
+          260,
+          264
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              -0.440775792000161,
+              0.004122801830837253
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.016901155055697302,
+              "yaw_rmse_rad_s": 0.015531426394884099,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.002313106643839672,
+              "mean_command_yaw_bias_rad_s": 0.0001378690130370503,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    -0.0023130340881717458,
+                    -1.8320827785080784e-05,
+                    0.0001378690130370503
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.002313106643839672,
+                  "yaw_bias_rad_s": 0.0001378690130370503
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              6.219527473823202,
+              0.059769717428167904
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3105,
+              "excluded_samples": 1395,
+              "steady_samples": 3105,
+              "xy_rmse_m_s": 0.05296095798787337,
+              "yaw_rmse_rad_s": 0.03211340039304547,
+              "nonzero_directional_gain": 0.786283392872332,
+              "mean_command_xy_bias_m_s": 0.025643226532199765,
+              "mean_command_yaw_bias_rad_s": 0.00012254623979783368,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 3105,
+                  "travel_seconds": 62.1,
+                  "actual_mean": [
+                    0.0943540076328689,
+                    -3.461614842123122e-05,
+                    -0.00012254623979783368
+                  ],
+                  "planned_mean": [
+                    0.11999721080064774,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.025643226532199765,
+                  "yaw_bias_rad_s": 0.00012254623979783368
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              0.0807976065308565,
+              -0.1134397696745539
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.01983599797920566,
+              "yaw_rmse_rad_s": 0.10073280322110283,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0026042025371407393,
+              "mean_command_yaw_bias_rad_s": 0.09591260930615488,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    -0.0009624773866693636,
+                    -0.0024198157232732365,
+                    0.05408325413149771
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.1499958634376526
+                  ],
+                  "xy_bias_m_s": 0.0026042025371407393,
+                  "yaw_bias_rad_s": 0.09591260930615488
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              0.08622620524994583,
+              0.11482336824976913
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3105,
+              "excluded_samples": 1395,
+              "steady_samples": 3105,
+              "xy_rmse_m_s": 0.01977420342803016,
+              "yaw_rmse_rad_s": 0.10059533015291873,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0026115755425721895,
+              "mean_command_yaw_bias_rad_s": 0.09595068420924932,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 3105,
+                  "travel_seconds": 62.1,
+                  "actual_mean": [
+                    -0.0007906807546884573,
+                    0.0024890059780415387,
+                    -0.05404519412956447
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999587833881378
+                  ],
+                  "xy_bias_m_s": 0.0026115755425721895,
+                  "yaw_bias_rad_s": 0.09595068420924932
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              98,
+              100
+            ],
+            "kicks": [
+              31,
+              33
+            ],
+            "net_xy": [
+              -0.8829095651903781,
+              0.7636268684908945
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3097,
+              "excluded_samples": 1403,
+              "steady_samples": 3097,
+              "xy_rmse_m_s": 0.04506103594751266,
+              "yaw_rmse_rad_s": 0.08218332229948765,
+              "nonzero_directional_gain": 0.7649033473459877,
+              "mean_command_xy_bias_m_s": 0.0235634595197769,
+              "mean_command_yaw_bias_rad_s": 0.07423010524734094,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 3097,
+                  "travel_seconds": 61.940000000000005,
+                  "actual_mean": [
+                    0.0764903390088292,
+                    -0.0015444254046293134,
+                    0.07576577309147284
+                  ],
+                  "planned_mean": [
+                    0.10000313073396683,
+                    0.0,
+                    0.14999587833881378
+                  ],
+                  "xy_bias_m_s": 0.0235634595197769,
+                  "yaw_bias_rad_s": 0.07423010524734094
+                }
+              }
+            },
+            "steps_v2": [
+              97,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              98,
+              100
+            ],
+            "kicks": [
+              31,
+              33
+            ],
+            "net_xy": [
+              -0.8879142340994611,
+              -0.7816664486458625
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3072,
+              "excluded_samples": 1428,
+              "steady_samples": 3072,
+              "xy_rmse_m_s": 0.04531738845762206,
+              "yaw_rmse_rad_s": 0.08205851106333778,
+              "nonzero_directional_gain": 0.7665098380737595,
+              "mean_command_xy_bias_m_s": 0.023412678880697042,
+              "mean_command_yaw_bias_rad_s": 0.07419542706007846,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 3072,
+                  "travel_seconds": 61.44,
+                  "actual_mean": [
+                    0.07665098809058331,
+                    0.0016829611489826873,
+                    -0.07580046617989651
+                  ],
+                  "planned_mean": [
+                    0.10000310093164444,
+                    0.0,
+                    -0.14999589323997498
+                  ],
+                  "xy_bias_m_s": 0.023412678880697042,
+                  "yaw_bias_rad_s": 0.07419542706007846
+                }
+              }
+            },
+            "steps_v2": [
+              95,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              96,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              1.13711656206131,
+              1.5718214691759795
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3082,
+              "excluded_samples": 1418,
+              "steady_samples": 3082,
+              "xy_rmse_m_s": 0.03645192130763749,
+              "yaw_rmse_rad_s": 0.05185102542798735,
+              "nonzero_directional_gain": 0.5936139919859783,
+              "mean_command_xy_bias_m_s": 0.024393959801241646,
+              "mean_command_yaw_bias_rad_s": 0.04761266055301296,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 3082,
+                  "travel_seconds": 61.64,
+                  "actual_mean": [
+                    0.03561683970344085,
+                    -0.0007709818222342188,
+                    0.027385286066974525
+                  ],
+                  "planned_mean": [
+                    0.059998612850904465,
+                    0.0,
+                    0.07499794661998749
+                  ],
+                  "xy_bias_m_s": 0.024393959801241646,
+                  "yaw_bias_rad_s": 0.04761266055301296
+                }
+              }
+            },
+            "steps_v2": [
+              96,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              96,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              1.1178645787422226,
+              -1.5789415258511519
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3057,
+              "excluded_samples": 1443,
+              "steady_samples": 3057,
+              "xy_rmse_m_s": 0.0364456987275922,
+              "yaw_rmse_rad_s": 0.051726534987206994,
+              "nonzero_directional_gain": 0.5967538690597872,
+              "mean_command_xy_bias_m_s": 0.024207520075070595,
+              "mean_command_yaw_bias_rad_s": 0.04750421111386783,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 3057,
+                  "travel_seconds": 61.14,
+                  "actual_mean": [
+                    0.035805232328844076,
+                    0.0008270469093203498,
+                    -0.027493742956700255
+                  ],
+                  "planned_mean": [
+                    0.05999862030148506,
+                    0.0,
+                    -0.07499795407056808
+                  ],
+                  "xy_bias_m_s": 0.024207520075070595,
+                  "yaw_bias_rad_s": 0.04750421111386783
+                }
+              }
+            },
+            "steps_v2": [
+              96,
+              100
+            ]
+          }
+        ]
+      },
+      {
+        "label": "sustained_500",
+        "horizon_seconds": 90,
+        "steps_v2": [
+          784,
+          800
+        ],
+        "kicks": [
+          256,
+          264
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              -0.4374830453394162,
+              0.009889663847340914
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.018029530169809717,
+              "yaw_rmse_rad_s": 0.016440177902319438,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.001992926863387756,
+              "mean_command_yaw_bias_rad_s": 0.00014934190788211892,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    -0.0019919545607650466,
+                    6.224556739151269e-05,
+                    0.00014934190788211892
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.001992926863387756,
+                  "yaw_bias_rad_s": 0.00014934190788211892
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              32,
+              33
+            ],
+            "net_xy": [
+              5.92967407597662,
+              0.07896031908854696
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3093,
+              "excluded_samples": 1407,
+              "steady_samples": 3093,
+              "xy_rmse_m_s": 0.059047851389500625,
+              "yaw_rmse_rad_s": 0.041898401241384706,
+              "nonzero_directional_gain": 0.711330471052976,
+              "mean_command_xy_bias_m_s": 0.03463797835621798,
+              "mean_command_yaw_bias_rad_s": 2.625560975504705e-05,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 3093,
+                  "travel_seconds": 61.86,
+                  "actual_mean": [
+                    0.08535965696800905,
+                    -0.00016997928419054337,
+                    2.625560975504705e-05
+                  ],
+                  "planned_mean": [
+                    0.11999721825122833,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.03463797835621798,
+                  "yaw_bias_rad_s": 2.625560975504705e-05
+                }
+              }
+            },
+            "steps_v2": [
+              99,
+              100
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              0.06244229327041899,
+              -0.17381717666686514
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.020266509834409235,
+              "yaw_rmse_rad_s": 0.10363670693158752,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.002552606850625049,
+              "mean_command_yaw_bias_rad_s": 0.09893210205679212,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    -0.0018136602706868253,
+                    -0.001796228870826355,
+                    0.05106376138086046
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.1499958634376526
+                  ],
+                  "xy_bias_m_s": 0.002552606850625049,
+                  "yaw_bias_rad_s": 0.09893210205679212
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              0.06170285670462408,
+              0.1744272614849754
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3105,
+              "excluded_samples": 1395,
+              "steady_samples": 3105,
+              "xy_rmse_m_s": 0.020221963672138025,
+              "yaw_rmse_rad_s": 0.1035078486453848,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0024949649190173576,
+              "mean_command_yaw_bias_rad_s": 0.09902936593452004,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 3105,
+                  "travel_seconds": 62.1,
+                  "actual_mean": [
+                    -0.001705059102719601,
+                    0.0018214344356468936,
+                    -0.05096651240429374
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999587833881378
+                  ],
+                  "xy_bias_m_s": 0.0024949649190173576,
+                  "yaw_bias_rad_s": 0.09902936593452004
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              94,
+              100
+            ],
+            "kicks": [
+              29,
+              33
+            ],
+            "net_xy": [
+              -0.9944795202463875,
+              0.7706143777647694
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3049,
+              "excluded_samples": 1451,
+              "steady_samples": 3049,
+              "xy_rmse_m_s": 0.04830522798996178,
+              "yaw_rmse_rad_s": 0.08816230409188643,
+              "nonzero_directional_gain": 0.7212323779688798,
+              "mean_command_xy_bias_m_s": 0.027884031040077084,
+              "mean_command_yaw_bias_rad_s": 0.07634427195098081,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 3049,
+                  "travel_seconds": 60.980000000000004,
+                  "actual_mean": [
+                    0.07212324182708778,
+                    0.0004836214225769313,
+                    0.07365163619015536
+                  ],
+                  "planned_mean": [
+                    0.10000307857990265,
+                    0.0,
+                    0.14999590814113617
+                  ],
+                  "xy_bias_m_s": 0.027884031040077084,
+                  "yaw_bias_rad_s": 0.07634427195098081
+                }
+              }
+            },
+            "steps_v2": [
+              93,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              95,
+              100
+            ],
+            "kicks": [
+              30,
+              33
+            ],
+            "net_xy": [
+              -0.9870310872015626,
+              -0.8107165625741628
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3037,
+              "excluded_samples": 1463,
+              "steady_samples": 3037,
+              "xy_rmse_m_s": 0.048752486055652966,
+              "yaw_rmse_rad_s": 0.08826611822964668,
+              "nonzero_directional_gain": 0.7223197730386278,
+              "mean_command_xy_bias_m_s": 0.02777279426221591,
+              "mean_command_yaw_bias_rad_s": 0.07630163808311649,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 3037,
+                  "travel_seconds": 60.74,
+                  "actual_mean": [
+                    0.07223198134013897,
+                    -0.0003076898641558533,
+                    -0.07369428495918087
+                  ],
+                  "planned_mean": [
+                    0.10000307112932205,
+                    0.0,
+                    -0.14999592304229736
+                  ],
+                  "xy_bias_m_s": 0.02777279426221591,
+                  "yaw_bias_rad_s": 0.07630163808311649
+                }
+              }
+            },
+            "steps_v2": [
+              94,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              99,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              1.2144897634918288,
+              1.509899345075978
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3118,
+              "excluded_samples": 1382,
+              "steady_samples": 3118,
+              "xy_rmse_m_s": 0.03786632248612852,
+              "yaw_rmse_rad_s": 0.054478297476774046,
+              "nonzero_directional_gain": 0.5728412401214913,
+              "mean_command_xy_bias_m_s": 0.025628133280544963,
+              "mean_command_yaw_bias_rad_s": 0.04917520558107496,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 3118,
+                  "travel_seconds": 62.36,
+                  "actual_mean": [
+                    0.03437047458512279,
+                    1.7813162479251472e-05,
+                    0.025822726137751335
+                  ],
+                  "planned_mean": [
+                    0.05999860167503357,
+                    0.0,
+                    0.0749979317188263
+                  ],
+                  "xy_bias_m_s": 0.025628133280544963,
+                  "yaw_bias_rad_s": 0.04917520558107496
+                }
+              }
+            },
+            "steps_v2": [
+              99,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              99,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              1.2111350934249956,
+              -1.502176976917003
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3093,
+              "excluded_samples": 1407,
+              "steady_samples": 3093,
+              "xy_rmse_m_s": 0.037890288530478246,
+              "yaw_rmse_rad_s": 0.05438552035284942,
+              "nonzero_directional_gain": 0.5738479658215834,
+              "mean_command_xy_bias_m_s": 0.025567795198638093,
+              "mean_command_yaw_bias_rad_s": 0.04906632991253777,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 3093,
+                  "travel_seconds": 61.86,
+                  "actual_mean": [
+                    0.034430878127440834,
+                    5.7296810973209134e-05,
+                    -0.025931609256869114
+                  ],
+                  "planned_mean": [
+                    0.059998609125614166,
+                    0.0,
+                    -0.07499793916940689
+                  ],
+                  "xy_bias_m_s": 0.025567795198638093,
+                  "yaw_bias_rad_s": 0.04906632991253777
+                }
+              }
+            },
+            "steps_v2": [
+              99,
+              100
+            ]
+          }
+        ]
+      },
+      {
+        "label": "sustained_1000",
+        "horizon_seconds": 90,
+        "steps_v2": [
+          773,
+          800
+        ],
+        "kicks": [
+          255,
+          264
+        ],
+        "cases": [
+          {
+            "command": [
+              0,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              -0.08941373283143997,
+              0.00868311094293136
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.018987004035506568,
+              "yaw_rmse_rad_s": 0.014331870169699498,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.0018442708358383775,
+              "mean_command_yaw_bias_rad_s": 0.00012163093880571998,
+              "cases": {
+                "[0.0, 0.0, 0.0]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    0.0018440474017642609,
+                    2.870707178495008e-05,
+                    0.00012163093880571998
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.0018442708358383775,
+                  "yaw_bias_rad_s": 0.00012163093880571998
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.12,
+              0,
+              0
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              92,
+              100
+            ],
+            "kicks": [
+              26,
+              33
+            ],
+            "net_xy": [
+              5.668983197558142,
+              0.1396623733801188
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 2958,
+              "excluded_samples": 1542,
+              "steady_samples": 2958,
+              "xy_rmse_m_s": 0.06683199770165243,
+              "yaw_rmse_rad_s": 0.05082302012400731,
+              "nonzero_directional_gain": 0.6917118474690988,
+              "mean_command_xy_bias_m_s": 0.03700868487320904,
+              "mean_command_yaw_bias_rad_s": 0.0013799478465490443,
+              "cases": {
+                "[0.12, 0.0, 0.0]": {
+                  "samples": 2958,
+                  "travel_seconds": 59.160000000000004,
+                  "actual_mean": [
+                    0.08300542212576309,
+                    0.0011147239917598533,
+                    -0.0013799478465490443
+                  ],
+                  "planned_mean": [
+                    0.11999731510877609,
+                    0.0,
+                    0.0
+                  ],
+                  "xy_bias_m_s": 0.03700868487320904,
+                  "yaw_bias_rad_s": 0.0013799478465490443
+                }
+              }
+            },
+            "steps_v2": [
+              84,
+              100
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              0.02913869490647653,
+              -0.012399932420231737
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.020658170777730907,
+              "yaw_rmse_rad_s": 0.10565164057517488,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.003137041313742003,
+              "mean_command_yaw_bias_rad_s": 0.10088834229921995,
+              "cases": {
+                "[0.0, 0.0, 0.15]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    0.002109863368624156,
+                    -0.0023215306954382665,
+                    0.04910752113843265
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    0.1499958634376526
+                  ],
+                  "xy_bias_m_s": 0.003137041313742003,
+                  "yaw_bias_rad_s": 0.10088834229921995
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              99,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              0.03627475263923757,
+              0.01058903253943723
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3101,
+              "excluded_samples": 1399,
+              "steady_samples": 3101,
+              "xy_rmse_m_s": 0.02071643346172512,
+              "yaw_rmse_rad_s": 0.10540465768524605,
+              "nonzero_directional_gain": null,
+              "mean_command_xy_bias_m_s": 0.003233686668143694,
+              "mean_command_yaw_bias_rad_s": 0.10083053446909741,
+              "cases": {
+                "[0.0, 0.0, -0.15]": {
+                  "samples": 3101,
+                  "travel_seconds": 62.02,
+                  "actual_mean": [
+                    0.0021789730921041098,
+                    0.0023893107231200634,
+                    -0.04916534386971637
+                  ],
+                  "planned_mean": [
+                    0.0,
+                    0.0,
+                    -0.14999587833881378
+                  ],
+                  "xy_bias_m_s": 0.003233686668143694,
+                  "yaw_bias_rad_s": 0.10083053446909741
+                }
+              }
+            },
+            "steps_v2": [
+              99,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              100,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              -0.9944598910843708,
+              0.8614778608326006
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3130,
+              "excluded_samples": 1370,
+              "steady_samples": 3130,
+              "xy_rmse_m_s": 0.05069936282100473,
+              "yaw_rmse_rad_s": 0.09427629384803753,
+              "nonzero_directional_gain": 0.694149477961329,
+              "mean_command_xy_bias_m_s": 0.030614912036144686,
+              "mean_command_yaw_bias_rad_s": 0.07777016619850058,
+              "cases": {
+                "[0.1, 0.0, 0.15]": {
+                  "samples": 3130,
+                  "travel_seconds": 62.6,
+                  "actual_mean": [
+                    0.06941495167499545,
+                    0.0012784043330443362,
+                    0.07222569723915201
+                  ],
+                  "planned_mean": [
+                    0.10000316053628922,
+                    0.0,
+                    0.1499958634376526
+                  ],
+                  "xy_bias_m_s": 0.030614912036144686,
+                  "yaw_bias_rad_s": 0.07777016619850058
+                }
+              }
+            },
+            "steps_v2": [
+              100,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.1,
+              0,
+              -0.15
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              96,
+              100
+            ],
+            "kicks": [
+              31,
+              33
+            ],
+            "net_xy": [
+              -1.0473123369232449,
+              -0.8360237115435892
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3068,
+              "excluded_samples": 1432,
+              "steady_samples": 3068,
+              "xy_rmse_m_s": 0.051375644397567775,
+              "yaw_rmse_rad_s": 0.09330512960121347,
+              "nonzero_directional_gain": 0.6864599908792691,
+              "mean_command_xy_bias_m_s": 0.03138309862212801,
+              "mean_command_yaw_bias_rad_s": 0.07703138674836557,
+              "cases": {
+                "[0.1, 0.0, -0.15]": {
+                  "samples": 3068,
+                  "travel_seconds": 61.36,
+                  "actual_mean": [
+                    0.06864600292382096,
+                    -0.001277217152235905,
+                    -0.0729645064916094
+                  ],
+                  "planned_mean": [
+                    0.10000310093164444,
+                    0.0,
+                    -0.14999589323997498
+                  ],
+                  "xy_bias_m_s": 0.03138309862212801,
+                  "yaw_bias_rad_s": 0.07703138674836557
+                }
+              }
+            },
+            "steps_v2": [
+              96,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              97,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              1.2286889040354256,
+              1.6146114226095674
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3094,
+              "excluded_samples": 1406,
+              "steady_samples": 3094,
+              "xy_rmse_m_s": 0.03624818292458998,
+              "yaw_rmse_rad_s": 0.05759989474371605,
+              "nonzero_directional_gain": 0.6005860711168598,
+              "mean_command_xy_bias_m_s": 0.023966170530922464,
+              "mean_command_yaw_bias_rad_s": 0.05014631350741739,
+              "cases": {
+                "[0.06, 0.0, 0.075]": {
+                  "samples": 3094,
+                  "travel_seconds": 61.88,
+                  "actual_mean": [
+                    0.036035164453458085,
+                    0.0003614545085769055,
+                    0.0248516256619895
+                  ],
+                  "planned_mean": [
+                    0.059998609125614166,
+                    0.0,
+                    0.07499793916940689
+                  ],
+                  "xy_bias_m_s": 0.023966170530922464,
+                  "yaw_bias_rad_s": 0.05014631350741739
+                }
+              }
+            },
+            "steps_v2": [
+              97,
+              100
+            ]
+          },
+          {
+            "command": [
+              0.06,
+              0,
+              -0.075
+            ],
+            "status": "complete",
+            "fault": null,
+            "falls": 0,
+            "steps": [
+              97,
+              100
+            ],
+            "kicks": [
+              33,
+              33
+            ],
+            "net_xy": [
+              1.2718572871545253,
+              -1.588733951966439
+            ],
+            "tracking": {
+              "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+              "active_samples": 3069,
+              "excluded_samples": 1431,
+              "steady_samples": 3069,
+              "xy_rmse_m_s": 0.03642370365038191,
+              "yaw_rmse_rad_s": 0.05754221176485474,
+              "nonzero_directional_gain": 0.6036103165191435,
+              "mean_command_xy_bias_m_s": 0.023783778046314225,
+              "mean_command_yaw_bias_rad_s": 0.05024158388933065,
+              "cases": {
+                "[0.06, 0.0, -0.075]": {
+                  "samples": 3069,
+                  "travel_seconds": 61.38,
+                  "actual_mean": [
+                    0.0362166191785339,
+                    -0.00029102909474909675,
+                    -0.024756362730656838
+                  ],
+                  "planned_mean": [
+                    0.05999861657619476,
+                    0.0,
+                    -0.07499794661998749
+                  ],
+                  "xy_bias_m_s": 0.023783778046314225,
+                  "yaw_bias_rad_s": 0.05024158388933065
+                }
+              }
+            },
+            "steps_v2": [
+              97,
+              100
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "nominal_mujoco": {
+    "cases": [
+      {
+        "case": "zero",
+        "parity": "FL",
+        "command": [
+          0,
+          0,
+          0
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "forward",
+        "parity": "FL",
+        "command": [
+          0.1,
+          0,
+          0
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "left",
+        "parity": "FL",
+        "command": [
+          0,
+          0,
+          0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "right",
+        "parity": "FL",
+        "command": [
+          0,
+          0,
+          -0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "curve_left",
+        "parity": "FL",
+        "command": [
+          0.1,
+          0,
+          0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          98,
+          100
+        ],
+        "steps_v2": [
+          98,
+          100
+        ],
+        "kicks": [
+          32,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "curve_right",
+        "parity": "FL",
+        "command": [
+          0.1,
+          0,
+          -0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "zero",
+        "parity": "FR",
+        "command": [
+          0,
+          0,
+          0
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "forward",
+        "parity": "FR",
+        "command": [
+          0.1,
+          0,
+          0
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "left",
+        "parity": "FR",
+        "command": [
+          0,
+          0,
+          0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "right",
+        "parity": "FR",
+        "command": [
+          0,
+          0,
+          -0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "curve_left",
+        "parity": "FR",
+        "command": [
+          0.1,
+          0,
+          0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          100,
+          100
+        ],
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "curve_right",
+        "parity": "FR",
+        "command": [
+          0.1,
+          0,
+          -0.1
+        ],
+        "returncode": 0,
+        "steps": [
+          98,
+          100
+        ],
+        "steps_v2": [
+          98,
+          100
+        ],
+        "kicks": [
+          32,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      }
+    ],
+    "steps_v2": [
+      1196,
+      1200
+    ],
+    "kicks": [
+      394,
+      396
+    ]
+  },
+  "perturbed_mujoco": {
+    "cases": [
+      {
+        "case": "armature_005",
+        "steps_v2": [
+          99,
+          100
+        ],
+        "kicks": [
+          32,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "armature_015",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          32,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "mass_110",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "gains_090",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "gains_110",
+        "steps_v2": [
+          95,
+          100
+        ],
+        "kicks": [
+          28,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "sensor_noise",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "sensor_delay20",
+        "steps_v2": [
+          96,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "action_delay20",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      },
+      {
+        "case": "combined",
+        "steps_v2": [
+          94,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ],
+        "fault": null,
+        "falls": 0
+      }
+    ],
+    "steps_v2": [
+      884,
+      900
+    ],
+    "kicks": [
+      290,
+      297
+    ]
+  },
+  "gazebo": {
+    "cases": [
+      {
+        "case": "gazebo/zero",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ]
+      },
+      {
+        "case": "gazebo/curve_left",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ]
+      },
+      {
+        "case": "gazebo/forward",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ]
+      },
+      {
+        "case": "gazebo/mixed",
+        "steps_v2": [
+          134,
+          134
+        ],
+        "kicks": [
+          44,
+          44
+        ]
+      },
+      {
+        "case": "gazebo/curve_right",
+        "steps_v2": [
+          100,
+          100
+        ],
+        "kicks": [
+          33,
+          33
+        ]
+      }
+    ],
+    "steps_v2": [
+      534,
+      534
+    ],
+    "kicks": [
+      176,
+      176
+    ]
+  },
+  "randomized_isaac": {
+    "cases": [
+      {
+        "seed": 9501,
+        "falls": 0,
+        "steps": [
+          8448,
+          8564
+        ],
+        "steps_v2": [
+          8443,
+          8559
+        ],
+        "kicks": [
+          2713,
+          2816
+        ]
+      },
+      {
+        "seed": 9502,
+        "falls": 0,
+        "steps": [
+          8471,
+          8563
+        ],
+        "steps_v2": [
+          8470,
+          8562
+        ],
+        "kicks": [
+          2720,
+          2816
+        ]
+      },
+      {
+        "seed": 9503,
+        "falls": 0,
+        "steps": [
+          8457,
+          8569
+        ],
+        "steps_v2": [
+          8456,
+          8568
+        ],
+        "kicks": [
+          2734,
+          2816
+        ]
+      }
+    ],
+    "steps_v2": [
+      25369,
+      25689
+    ],
+    "kicks": [
+      8167,
+      8448
+    ]
+  },
+  "videos": {
+    "mujoco_final": {
+      "simulator": "MuJoCo official or labeled perturbation",
+      "status": "complete",
+      "fault": null,
+      "seconds": 59.98000000002734,
+      "metrics": {
+        "attempts": 52.0,
+        "correct": 52.0,
+        "missed": 0.0,
+        "skipped": 0.0,
+        "FL_RR_correct": 26.0,
+        "FR_RL_correct": 26.0,
+        "limit_clamps": 0.0,
+        "kicks": 17.0,
+        "kick_successes": 17.0,
+        "kick_failures": 0.0,
+        "postkick_successes": 17.0
+      },
+      "strict_truth_kicks": {
+        "FL": [
+          7,
+          8
+        ],
+        "FR": [
+          9,
+          9
+        ]
+      },
+      "total_strict_truth": [
+        16,
+        17
+      ],
+      "net_xyz": [
+        1.7141703881664374,
+        0.14887445429443666,
+        -0.023172164784270366
+      ],
+      "last_10s_net_xyz": [
+        -0.001493204930278047,
+        -0.001587976814097225,
+        -0.00034372298821971903
+      ],
+      "min_height": 0.29291235791347986,
+      "max_tilt_degrees": 7.314480781555176,
+      "max_abs_joint_speed": 7.923050901766416,
+      "estimated_PD_demand_peak_Nm": 15.238640092091718,
+      "estimated_PD_demand_over_training_envelope_fraction": 0.0,
+      "tracking": {
+        "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+        "active_samples": 2270,
+        "excluded_samples": 730,
+        "steady_samples": 2163,
+        "xy_rmse_m_s": 0.03223288784677605,
+        "yaw_rmse_rad_s": 0.03545264707807841,
+        "nonzero_directional_gain": 0.7680846457853763,
+        "mean_command_xy_bias_m_s": 0.015588019832683844,
+        "mean_command_yaw_bias_rad_s": 0.027897891634878443,
+        "cases": {
+          "[0.0, 0.0, 0.0]": {
+            "samples": 981,
+            "travel_seconds": 19.62,
+            "actual_mean": [
+              -0.0006050885921566364,
+              -6.122098206492103e-05,
+              0.0004503387140681995
+            ],
+            "planned_mean": [
+              1.1212983736186288e-05,
+              0.0,
+              0.0
+            ],
+            "xy_bias_m_s": 0.0006193348376225658,
+            "yaw_bias_rad_s": 0.0004503387140681995
+          },
+          "[0.08, 0.0, -0.1]": {
+            "samples": 306,
+            "travel_seconds": 6.12,
+            "actual_mean": [
+              0.05981512458484322,
+              0.0037006220986339207,
+              -0.044555242322177495
+            ],
+            "planned_mean": [
+              0.07999993860721588,
+              0.0,
+              -0.10000026226043701
+            ],
+            "xy_bias_m_s": 0.020521240728442074,
+            "yaw_bias_rad_s": 0.05544501993825952
+          },
+          "[0.08, 0.0, 0.1]": {
+            "samples": 341,
+            "travel_seconds": 6.82,
+            "actual_mean": [
+              0.0597818224421886,
+              -0.00338321240608575,
+              0.04443413196578752
+            ],
+            "planned_mean": [
+              0.07999993860721588,
+              0.0,
+              0.10000015050172806
+            ],
+            "xy_bias_m_s": 0.020499227971980557,
+            "yaw_bias_rad_s": 0.05556601853594054
+          },
+          "[0.1, 0.0, 0.0]": {
+            "samples": 535,
+            "travel_seconds": 10.700000000000001,
+            "actual_mean": [
+              0.07929120510220353,
+              0.0008620809784087648,
+              0.00013018935124550649
+            ],
+            "planned_mean": [
+              0.0999855324625969,
+              0.0,
+              0.0
+            ],
+            "xy_bias_m_s": 0.020712275792690183,
+            "yaw_bias_rad_s": 0.00013018935124550649
+          }
+        }
+      },
+      "scenario": {
+        "case": "matched_video_sequence",
+        "seconds": 60,
+        "stand_request": 46,
+        "source": "../sequence.py",
+        "hardware": false
+      },
+      "physical_steps": [
+        52,
+        52
+      ]
+    },
+    "gazebo_final": {
+      "simulator": "Gazebo go2hv_mujoco_v1 profile",
+      "status": "complete",
+      "fault": null,
+      "seconds": 59.98,
+      "metrics": {
+        "attempts": 52.0,
+        "correct": 52.0,
+        "missed": 0.0,
+        "skipped": 0.0,
+        "FL_RR_correct": 26.0,
+        "FR_RL_correct": 26.0,
+        "limit_clamps": 0.0,
+        "kicks": 17.0,
+        "kick_successes": 17.0,
+        "kick_failures": 0.0,
+        "postkick_successes": 17.0
+      },
+      "strict_truth_kicks": {
+        "FL": [
+          8,
+          8
+        ],
+        "FR": [
+          9,
+          9
+        ]
+      },
+      "total_strict_truth": [
+        17,
+        17
+      ],
+      "net_xyz": [
+        1.9687946191184462,
+        0.2397018992632667,
+        -0.017639272721676202
+      ],
+      "last_10s_net_xyz": [
+        2.000227385945408e-06,
+        -1.1678440838269744e-06,
+        3.077482291780065e-07
+      ],
+      "min_height": 0.2873466710354745,
+      "max_tilt_degrees": 6.694105912223305,
+      "max_abs_joint_speed": 8.239824010050397,
+      "estimated_PD_demand_peak_Nm": 17.9515257170103,
+      "estimated_PD_demand_over_training_envelope_fraction": 0.0,
+      "tracking": {
+        "definition": "Only measured-ready SUPPORT/STEP travel intervals; kick, hold, recovery and reset excluded. No catch-up speed.",
+        "active_samples": 2270,
+        "excluded_samples": 730,
+        "steady_samples": 2163,
+        "xy_rmse_m_s": 0.03195332904160546,
+        "yaw_rmse_rad_s": 0.04177921741204209,
+        "nonzero_directional_gain": 0.9140897633348959,
+        "mean_command_xy_bias_m_s": 0.006050654135299644,
+        "mean_command_yaw_bias_rad_s": 0.013795583775612557,
+        "cases": {
+          "[0.0, 0.0, 0.0]": {
+            "samples": 980,
+            "travel_seconds": 19.6,
+            "actual_mean": [
+              0.0003956383377449938,
+              2.887680289617949e-05,
+              0.0001886521086777091
+            ],
+            "planned_mean": [
+              1.1224424637549995e-05,
+              0.0,
+              0.0
+            ],
+            "xy_bias_m_s": 0.0003854969861569376,
+            "yaw_bias_rad_s": 0.0001886521086777091
+          },
+          "[0.08, 0.0, -0.1]": {
+            "samples": 307,
+            "travel_seconds": 6.140000000000001,
+            "actual_mean": [
+              0.07224123330953336,
+              0.0025539482259532764,
+              -0.07189601511934365
+            ],
+            "planned_mean": [
+              0.07999999821186066,
+              0.0,
+              -0.10000000149011612
+            ],
+            "xy_bias_m_s": 0.008168297518481792,
+            "yaw_bias_rad_s": 0.028103986370772466
+          },
+          "[0.08, 0.0, 0.1]": {
+            "samples": 341,
+            "travel_seconds": 6.82,
+            "actual_mean": [
+              0.07276682551331531,
+              -0.0032291715135241176,
+              0.0735299398114238
+            ],
+            "planned_mean": [
+              0.07999999821186066,
+              0.0,
+              0.10000000149011612
+            ],
+            "xy_bias_m_s": 0.00792125848276253,
+            "yaw_bias_rad_s": 0.026470061678692314
+          },
+          "[0.1, 0.0, 0.0]": {
+            "samples": 535,
+            "travel_seconds": 10.700000000000001,
+            "actual_mean": [
+              0.09231526016742952,
+              0.0009355472964736113,
+              0.0004196349443077375
+            ],
+            "planned_mean": [
+              0.09998598306257034,
+              0.0,
+              0.0
+            ],
+            "xy_bias_m_s": 0.0077275635537973125,
+            "yaw_bias_rad_s": 0.0004196349443077375
+          }
+        }
+      },
+      "physical_steps": [
+        52,
+        52
+      ]
+    }
+  },
+  "hardware_tested": false,
+  "final_status": {
+    "status": "complete",
+    "started_utc": "2026-11-02 06:06:45 UTC",
+    "finished_utc": "2026-11-02T07:57:57.078487+00:00",
+    "elapsed_minutes": 111.20130811134975,
+    "deadline_utc": "2026-11-02 12:06:45 UTC",
+    "within_budget": true,
+    "training_updates": 1900,
+    "training_transitions": 186777600,
+    "selected_policy": "preserved timing+300/model_299",
+    "onnx_sha256": "bfe0617876fd09abc972161193004974975f402927119023e707ac0037df3051",
+    "hardware_tested": false,
+    "physical_actions": false,
+    "autonomous_jobs_remaining": false,
+    "gpu_lock_free": true,
+    "export": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/exports/go2_cpg_hardware_prep_20261102",
+    "remaining_real_checks": [
+      "native Orin/ROS build and load timing",
+      "per-foot physical contact calibration",
+      "motor response/payload/COM measurements",
+      "supported real motion and independent stop checks"
+    ],
+    "end_reason": "Preparation, simulation selection, integration verification and portable handoff complete; further unsupported fine-tuning did not improve transfer."
+  }
+}

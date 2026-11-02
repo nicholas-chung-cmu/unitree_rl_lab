@@ -41,6 +41,9 @@ class GaitConfig:
     velocity_reward_std: float=.25
     yaw_reward_std: float=.4
     training_zero_fraction: float=.3
+    training_backward_fraction: float=.5  # among nonzero sampled translations
+    training_lateral_scale: float=1.  # training only; 0 for restricted forward demo
+    training_turn_fraction: float=0.  # pure yaw among nonzero commands
     balanced_phrases: bool=False
     wrench_compensation: float=0.
     freeze_hold_phase: bool=False
@@ -56,6 +59,11 @@ class GaitConfig:
     integrated_walk_reference: bool=False
     linear_acceleration_limit: float=0.  # zero preserves instantaneous command updates
     yaw_acceleration_limit: float=0.
+    exclude_pause_tracking: bool=False  # opt-in, preserve archived experiments
+    estimated_feedback: bool=False  # same flat-ground encoder/IMU feedback as deployment
+    training_command_period: float=0.  # mean seconds; sampled in [0.75,1.25]*period
+    strict_kick_timing_reward: bool=False
+    kick_tracking_std: float=.03  # reward only; preserve legacy endpoint shaping
 
     @property
     def beat(self):return 60/self.bpm
@@ -82,6 +90,26 @@ class GaitConfig:
             raise ValueError('Kick preparation shift exceeds its bounded range')
         if self.linear_acceleration_limit<0 or self.yaw_acceleration_limit<0:
             raise ValueError('Command acceleration bounds cannot be negative')
+        if not 0<=self.training_backward_fraction<=1 or not 0<=self.training_turn_fraction<=1:
+            raise ValueError('Invalid directional training curriculum fraction')
+        if not 0<=self.training_lateral_scale<=1:
+            raise ValueError('Invalid lateral curriculum scale')
+        if self.training_command_period<0:
+            raise ValueError('Command period cannot be negative')
+        if not math.isfinite(self.kick_tracking_std) or self.kick_tracking_std<=0:
+            raise ValueError('Kick tracking scale must be finite and positive')
+
+
+def training_direction_bias(velocity,cfg):
+    """Training-only distribution; external joystick commands remain unchanged."""
+    if cfg.training_backward_fraction!=.5:
+        backward=torch.rand(len(velocity),device=velocity.device)<cfg.training_backward_fraction
+        velocity[:,0]=velocity[:,0].abs()*torch.where(backward,-1.,1.)
+    velocity[:,1]*=cfg.training_lateral_scale
+    if cfg.training_turn_fraction:
+        turn=torch.rand(len(velocity),device=velocity.device)<cfg.training_turn_fraction
+        velocity[turn,:2]=0.
+    return velocity
 
 
 def advance_velocity(current,target,dt,cfg):
@@ -158,6 +186,25 @@ def nominal_feet(n,device,cfg):
     feet[:,:,1]=feet.new_tensor(HIP_Y)+feet.new_tensor(SIDE)*.0955
     feet[:,:,2]=-cfg.leg_height
     return feet
+
+
+def estimated_foot_feedback(q,qd,gyro,gravity,contact,previous_height):
+    """Flat-ground support kinematics, matching deploy/cpg/runtime.py.
+
+    Returns ground-relative sole clearance, body-frame foot velocity, height.
+    Median averages the central two samples for four/two support feet, as NumPy.
+    No truth root pose, root velocity, or simulator foot state is used.
+    """
+    feet=fk(q)
+    relative=foot_velocity(q,qd)+torch.cross(gyro[:,None,:].expand_as(feet),feet,dim=-1)
+    count=contact.sum(-1)
+    body_velocity=-(relative*contact[:,:,None]).sum(1)/count.clamp_min(1)[:,None]
+    vertical=(feet*(-gravity[:,None,:])).sum(-1)
+    candidates=torch.where(contact,.022-vertical,torch.full_like(vertical,float('inf'))).sort(-1).values
+    lo=((count-1).clamp_min(0)//2)[:,None];hi=(count//2)[:,None]
+    height=.5*(candidates.gather(1,lo).squeeze(1)+candidates.gather(1,hi).squeeze(1))
+    height=torch.where(count>0,height,previous_height)
+    return vertical+height[:,None]-.022,relative+body_velocity[:,None,:],height
 
 
 def schedule(time,cfg):

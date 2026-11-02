@@ -1,0 +1,18 @@
+{
+  "onnx_sha256": "ab09c44914df9102ea400ac2db9be3c99cf548512e4c3a7cd2ae13a58c6a7de8",
+  "joystick_limits": [
+    0.12,
+    0.06,
+    0.1
+  ],
+  "observation_dim": 75,
+  "actuator_profile": "go2hv_mujoco_v1",
+  "jit_sha256": "1cdbf26e0a246de300d0d8178c42df9d88e80d114d0ecacb7a15dafbe1510744",
+  "checkpoint_sha256": "81fdb578aeb8ba4dec2ea74ea06a3766927f4cdc135b8cad538009959d763315",
+  "onnx_export": "policy.onnx",
+  "jit_export": "policy.pt",
+  "deploy_metadata": "deploy.yaml",
+  "settings": "settings.json",
+  "hardware_compatible": false,
+  "qualification": "75-input robustness comparison candidate, selected at 250 additional PPO updates. Simulation/shadow only: sustained backward Gazebo travel fails, neutral drift remains. See reports/go2_cpg_robust_compare.md."
+}

@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "python_tests": 29,
+  "component_tests": 109,
+  "gazebo_decoder_tests": 4,
+  "cxx_sink_tests": 8,
+  "cxx_sensor_tests": 4,
+  "randomized_envelope_cases": 100000,
+  "activation_rejection_cases": 5,
+  "ros_shadow_fault_cases": 5,
+  "wireless_ros_test": "passed",
+  "native_build": "quad_msgs quad_utils robot_driver: passed",
+  "selected_policy_sha256": "bfe0617876fd09abc972161193004974975f402927119023e707ac0037df3051",
+  "hardware_tested": false,
+  "native_arm_humble_tested": false,
+  "physical_actions": false,
+  "clock_guard_replays": 5,
+  "clock_guard_max_abs_phase_error_ms": 0.15597504563635844,
+  "staged_bundle_preflight": {
+    "packets": 602,
+    "median_ms": 1.992770005017519,
+    "p99_ms": 2.2787030320614576,
+    "max_ms": 3.2113429624587297,
+    "all_under_15ms": true,
+    "description": "Offline worker replay on this host, not full ROS/motor timing qualification"
+  },
+  "staged_bundle_simulation": {
+    "status": "complete",
+    "fault": null,
+    "stop_reason": null,
+    "seconds": 12.000000000000677,
+    "requested_seconds": 12.0,
+    "samples": 600,
+    "wall_seconds": 1.774583269143477,
+    "falls": 0,
+    "metrics": {
+      "attempts": 12.0,
+      "correct": 12.0,
+      "missed": 0.0,
+      "skipped": 0.0,
+      "FL_RR_correct": 6.0,
+      "FR_RL_correct": 6.0,
+      "limit_clamps": 0.0,
+      "kicks": 4.0,
+      "kick_successes": 4.0,
+      "kick_failures": 0.0,
+      "postkick_successes": 3.0
+    },
+    "input_status": "fixed",
+    "control_p50_ms": 2.048370079137385,
+    "control_p99_ms": 2.542102502193302,
+    "feedback": "estimated",
+    "hardware_tested": false
+  },
+  "patch_verification": {
+    "patch_applies_cleanly_to_base": "b986dc4bd663f0662daa43234398c3a5d5b8c73a",
+    "source_files_identical": 25,
+    "manifest_files_valid": 1246,
+    "no_robot_actions": true
+  },
+  "final_export_preflight": {
+    "packets": 602,
+    "median_ms": 1.9999989308416843,
+    "p99_ms": 2.4857630487531424,
+    "max_ms": 3.1205799896270037,
+    "all_under_15ms": true,
+    "description": "Offline worker replay on this host, not full ROS/motor timing qualification"
+  },
+  "all_owned_jobs_stopped": true,
+  "original_policy_unchanged": true
+}

@@ -1,3 +1,456 @@
+# Hardware preparation candidate (2026-11-02)
+
+Six-hour authorization 06:06:45–12:06:45 UTC; session logs/cpg_hardware6h_20261102.
+Completed within the authorized budget; no autonomous jobs remain. No robot connected
+or physically commanded. No budget extension is authorized. Original policies kept.
+1900 additional PPO updates,4096envs,186,777,600 transitions across3branches;
+all new checkpoints rejected on MuJoCo transfer. Keep timing+300/model299 from
+cpg_targeted45_20261102. Actor75 unchanged; no81-input retraining.
+
+Final selection forward0–.10m/s,lateral/backward0,yaw±.10rad/s,no bounce.
+Neutral/stale velocity keeps dancing. Three scheduled diagonal steps,90BPM,
+alternating lateral front kicks and raised hold remain as previously specified;
+actual contacts determine success, and kick/hold pauses are excluded from speed.
+18Nm sampled PD+FF command cap now modifies transmitted gains, with speed envelope;
+not a physical torque guarantee. MuJoCo final selection includes the same cap.
+
+Capped MuJoCo12×90s:1196/1200steps394/396strictkicks; Gazebo5longtrials:
+534/534steps176/176kicks;9cappedMJperturbations884/900steps290/297kicks,0falls.
+RandomizedIsaac3×64×120s:25369/25689v2steps8167/8448kicks,0falls.
+Support audit v2 extends checking to+100ms without relaxing±60ms touchdown.
+Combined turns retain rare support/timing misses. Higher gains degrade kicks.
+
+New atomic CpgSensorFrame,source-tick/age/deadline gates,explicit opt-in profile,
+read-only receiver/calibration/shadow tools,wireless A deliberate stand/B damping,
+measured-pose stand/SIT ramps and latched target/sensor faults. Hardware starts
+SAFETY4;READY1,SIT0 (generic web tutorial modes differ). Damping is not upright
+recovery; no automatic rearm. Operator neutral input continues dance as requested.
+
+Docs: docs/go2_cpg_hardware.md; report reports/go2_cpg_hardware6h.md. Final
+portable bundle exports/go2_cpg_hardware_prep_20261102. Exact Orin/Ubuntu/ROS,
+contact calibration,physical actuator response and onboard latency remain untested.
+Template hardware flags must stay false until real measurements support them.
+Use the existing walking installation as rollback. Do not claim hardware readiness.
+Final status/cleanup in session final_status.json. Cumulative hardware clock drift
+is bounded to20ms; five final ROS replays passed with max0.156ms phase error.
+
+# Targeted robustness completed (2026-11-02, latest)
+
+Authorized45-minute session completed within04:52:12–05:37:12UTC. No overnight
+extension/job and no hardware activation. Training stopped; existing exports kept.
+4096envs, fixed LR5e-5,1050 total updates/103,219,200 transitions across two
+branches from robust75@250; separate2-update smoke. Actor75 unchanged.
+New opt-in kick-body and neutral-travel rewards; forward-biased sampling. Kick
+pauses remain excluded from travel tracking. Legacy defaults preserve behavior.
+
+Selected timing branch+300: timing_train2/training/model_299.pt under
+logs/cpg_targeted45_20261102/. Non-backward nominal MuJoCo308/308 physical
+steps,98/98 strict chains. Neutral90s drift0.840→0.294mMuJoCo,0.634→0.106m
+Gazebo. Strong matched uncertainty628/672→656/672 strict kicks, no falls.
+Gazebo demo134/134steps44/44chains; neutral100/10033/33; forward66/6621/21.
+Later450 checkpoint regresses forward/latency checks. Median neutral stepping
+clearance4.9cm versus5.6cm before; monitor this tradeoff. Backward remains poor.
+
+Diagnostics: precision600 post-kick rejects four steps due to opposite front
+support foot lifting2.7mm for40ms at~67ms after the beat. Independent audit's
+60ms window misses that edge; strict chains retain controller rejection. Do not
+relax thresholds. Investigate support-force margin and version audit changes.
+
+Report reports/go2_cpg_targeted45.md; overnight plan
+reports/go2_cpg_targeted45_handoff.md; portable selected export
+exports/go2_cpg_targeted45_20261102/. Hardware calibration, timing, total PD
+torque limiting and airborne fault recovery remain. Wait for user authorization
+and a new budget before any overnight work. Historical sessions below.
+
+# Robustness comparison completed (2026-11-01, latest)
+
+Authorized matched fine-tuning completed: 4096 environments, 1000 updates per
+75/81-input arm, 196,608,000 total transitions. Two-hour budget respected.
+No training remains running; no hardware activation. Prior exports/defaults kept.
+Opt-in actuator profile go2hv_mujoco_v1, upstream sensor uncertainty, measured
+81-input option and separate HOLD stability reward implemented. Travel rewards
+still exclude kick/hold pauses. Full architecture: docs/go2_cpg_robustness.md.
+
+Select the 250-update checkpoint in EACH arm, not the latest. Nominal MuJoCo
+strict kicks: original19/112,75@250112/112,81@25099/112,75@100094/112,
+81@100098/112. Both selected policies pass neutral/forward/mixed Gazebo motion
+checks, but sustained backward travel faults on tilt at about29s. Neutral90s
+drift:75=.634mGazebo/.840mMuJoCo;81=.396m/.487m. Selected randomized Isaac
+strict kicks609/672(75),612/672(81),no falls. Final1000 improves randomized
+scores but regresses nominal transfer. Keep75@250 as next SIM development base;
+81 has no clear overall transfer advantage in this single-seed comparison.
+
+Both600-packet ROS replays passed;81 first replay stale-stream fault and first
+Gazebo forward missed-tick fault are retained, retries passed. Hardware timing,
+actuator/contact calibration, airborne recovery and total PD torque limiting
+remain unresolved. Do not promote hardware readiness. Next: diagnose backward
+plant/contact discrepancy and body drift during kick extension/neutral stepping.
+Report reports/go2_cpg_robust_compare.md; logs/cpg_robust_compare_20261101/.
+Portable selected bundles: exports/go2_cpg_robust75_20261101 and robust81 variant.
+
+# Broader simulation/configuration audit completed (2026-11-01, latest)
+
+User authorized broader sim checks/configuration audit, not training. Completed
+9 Gazebo trials (8 scenarios + backward repeat), 20 MuJoCo trials, and 600-packet
+ROS shadow replay on localhost. No hardware or training actions; all sims stopped.
+Frozen experimental model2499, actor75. Original model/policy hashes preserved.
+
+Gazebo with both passive terms off: forward21/21 strict kick chains, neutral33/33,
+mixed42/44; backward triggers excessive-tilt fault at31.28s in BOTH repeats.
+MuJoCo official model: forward16/21, neutral/lateral/turning0 strict, mixed14/44.
+90s neutral drift: Gazebo -.364m, MuJoCo -.686m, dominated by kick/hold phases.
+Travel-only forward tracking .092/.052m/s at .1m/s; kick pauses remain excluded.
+Do not promote hardware readiness from the earlier short forward A/B test.
+
+Configuration audit: core75-input/action/gain50Hz contract matches. Export
+settings.json is evaluation metadata; selected checkpoint trained with friction
+.4–1, mass ±5%, gains ±10%, armature0–.015, actuator delay0–5ms and actor noise.
+Estimator/scheduler still use clean simulation sensors in training; upstream
+contact/sensor uncertainty, longer delay/jitter, COM and disturbance coverage
+remain gaps. Armature sweep strict14/14→13/14→9/14→0/14 at0/.005/.01/.015.
+RobotDriver effort clamp only sets telemetry; UnitreeInterface sends q/dq/kp/kd/
+tau_ff, so this is not a total hardware PD torque limiter. Hardware mode blocked.
+Recommend plant alignment and robustness fine-tune, with equal-budget75vs81
+comparison; no training started. Review results with user first.
+Report reports/go2_cpg_broad_sim.md; evidence logs/cpg_broad_sim_20261101/.
+
+# Gazebo passive-dynamics comparison completed (2026-11-01)
+
+Authorized frozen-policy test completed; no training or hardware actions.
+Six 40-second trials, two per condition, experimental dance model2499 (75 inputs).
+Original model: 13/28 strict kick chains; springs off: 10/28; springs and passive
+model damping off: 28/28. Each condition completed 88/88 steps without falls.
+Springs off fixed hold clearance; removing passive damping also fixed timing.
+Motor PD stayed 25/0.5. Both-off forward displacement averaged 0.977 m during
+15 seconds of +0.1 m/s input; final 16-second neutral drift +0.004 m versus
++0.516 m original. Maximum body tilt increased from 4.32 to 7.21 degrees.
+
+Quad-SDK launch args cpg_disable_springs/cpg_disable_damping default false;
+cpg_model_dump optionally saves generated SDF. Only generated Go2 CPG model
+is changed. Source model/policy checksums unchanged; all test simulations stopped.
+Report reports/go2_cpg_passive_ab.md; evidence logs/cpg_passive_ab_20261101/.
+This is a narrow dynamics diagnostic, not hardware qualification or a mandate
+to set physical damping to zero. Broader directional/recovery tests and actuator
+calibration remain. Review with user BEFORE any 81-input training.
+
+# Quad-SDK Gazebo integration completed (2026-11-01)
+
+User authorized integration of the existing 75-input conga runtime and asked to
+review results BEFORE potentially training an 81-input policy. No new training
+is authorized by this integration request; none was launched or scheduled.
+Flat, firm, nonslippery real test surface is the user's intended environment.
+
+Quad-SDK checkout: /home/rml2/ros2_ws/src/quad-sdk, branch nick_conga.
+New simulation-only controller=cpg; launch quad_cpg_gazebo.py, conga_root points
+to this repo. Hardware mode rejected. Raw joint/IMU/contact bridge -> existing
+worker -> robot_driver READY gate -> existing motor-limit/PD Gazebo plugin.
+Zero/stale motion input keeps dancing; sensor/target faults latch. Stand fallback
+on fault is simulation-only; restart the sim to rearm. Hardware recovery pending.
+
+Final corrected-contact-model 30s windows: walking43/43 steps,1.477m forward;
+experimental dance33/33 steps,10 postkick landings,6/10 estimator-based strict
+kick chains,1.447m forward. Original dance17/23 steps,0/10 complete chains,all10
+holds lose support. No falls in these windows. Contact/clearance gates here use
+deployable estimates, not independent foot-truth audits. Do not equate them to
+prior MuJoCo qualification or promote hardware readiness. Original policies kept.
+
+Gazebo fixes: IMU1->500Hz; CPG-only generated SDF removes4 duplicated foot
+collision spheres; original SDF/inertias/joint dynamics retained. Contact event
+streams expire after10ms during flight; support stream and IMU/joints must remain
+fresh. Existing Gazebo passive springs3Nm/rad toward sitting and damping0.5 remain
+an important uncalibrated dynamics mismatch. Review these BEFORE an81obs sweep.
+
+11 deployment tests+4 contact tests passed; build, SDF checks and live fault-latch
+tests passed. All our test simulations stopped. Report reports/go2_cpg_gazebo_integration.md;
+evidence logs/cpg_gazebo_integration_20261101/; Quad-SDK docs/cpg_gazebo.md has
+commands. Prior experiment budgets/checkpoints/manifests below are historical.
+
+# Travel-first experiment completed (2026-11-01, latest)
+
+Completed2000 additional PPO updates,4096envs×24steps=196,608,000 transitions,
+about one hour including evaluation, within original four-hour deadline. All
+training is stopped; no budget extension/restart. New aggregate record:
+`logs/cpg_travel_curriculum_20261101/results_summary.json`. Original checkpoints
+and finished dance preserved. User will provide a multi-root Quad-SDK workspace.
+
+Qualified walking-only candidate: model899, `walking_candidate.json`. Fixed
+Isaac1472/1472 and MuJoCo248/248 steps; changing-command Isaac1952/1952; no falls.
+Forward video30s at.12m/s command:2.19m forward,.33m lateral drift,43/43 steps.
+Scripted40s video58/58 steps. Zero input marches; no kick/bounce in this candidate.
+
+Experimental traveling dance: model2499 (`experimental_dance.json`), retained
+instead of latest2799 by worst-simulator/worst-leg kick review. Forward30s video:
+1.49m forward,.08m lateral,30/33 strict steps,9/10 strict kick chains,zero falls.
+This favorable clip is NOT general qualification: eight-command MuJoCo gate
+184/192 steps,8/56 kicks. Matched-inertia Isaac1120/1120 steps,105/352 kicks.
+No traveling-dance checkpoint passed all per-leg/timing/hold gates; no bounce.
+Do not replace the finished dance automatically or claim hardware readiness.
+Travel-speed means exclude kicks/holds/recovery; whole-video displacement is a
+separate position metric including pauses. No catch-up acceleration.
+
+Important transfer diagnosis: official MuJoCo armature.01 contributes to late
+kicks. Frozen-policy stationary probe0/7 strict; diagnostic armature0 yielded7/7
+(~17ms delay vs~120ms). Friction0 yielded3/7; damping0 yielded0/7. Official model
+unchanged; modified models are diagnostic only. Prior Isaac nominal armature0,
+training0–.015; final300 updates used nominal.01 and random.008–.012, verified by
+physics readback. Final2799 still unqualified: Isaac154/352 and MuJoCo4/56 kicks,
+zero falls,1120/1120 and189/192 steps. More updates did not reliably improve it.
+
+Both exported candidates passed1500-frame worker parity (0rad target difference)
+and400-packet actual Quad-SDK ROS2 localhost shadow replay with sensor-loss latch.
+109 component tests,12 deployment/metric tests,26 reward-scale/core checks passed.
+Bundles: `exports/go2_cpg_demo_walk_20261101/` and
+`exports/go2_cpg_demo_dance_experimental_20261101/`, separately labeled.
+Report and video links: `reports/go2_cpg_travel_curriculum.md`.
+The two supervisor `failed` states in intermediate phases are intentional
+pre-PPO review stops; corresponding *_review_stop.json files record zero extra
+updates. All final gates use the unchanged official MuJoCo model. No robot was
+connected; `/cpg_sim/` output remains shadow-only, hardware mode/calibration pending.
+
+# Final travel curriculum actuator-inertia correction (2026-11-01)
+
+Hold-transfer completed750 updates (700 dance+50 rehearsal),1700 total. Latest
+model2499: Isaac1114/1120 steps,186/352 strict kicks; MuJoCo184/192 steps,8/56
+kicks; zero falls. Forward1.03m/22s meets practical travel gate, kicks unqualified.
+Next unchanged segment stopped before main/PPO; zero new updates. See
+`hold_transfer/armature_review_stop.json` for intentional supervisor failure.
+
+Single-parameter diagnostic copies of official MuJoCo model, same frozen policy:
+stationary kick0/7 at~.12s late; zero joint friction3/7 at~.06s; zero passive
+damping0/7 at~.097s; zero armature7/7 at~.017s. All24/24 steps,zero falls. These
+modified models are diagnostics only; official model and qualification unchanged.
+Physics readback confirms prior Isaac nominal armature0; training uniform0–.015
+(mean.00752). Official MuJoCo armature.01 is a material transfer difference.
+
+Final phase `logs/cpg_travel_curriculum_20261101/armature_transfer/` starts from
+model2499. Set nominal Isaac actuator armature.01 and narrow randomization to
+.008–.012, with physics-engine readback assertions. All rewards,geometry,timing
+and demo command caps from hold-transfer retained. Dance100/150 plus25 walking
+rehearsal each: maximum300 remaining updates, total<=2000, original four-hour
+deadline. No bounce in this final transfer check. Existing walking fallback's
+unchanged exact evaluation reused. Strict per-leg/contact/fall gates remain.
+Tmux `go2_cpg_armature_transfer`. No hardware actions or further budget extension.
+
+# Travel curriculum hold/transfer correction (2026-11-01, latest)
+
+Symmetric acquisition completed250 updates (200 dance+50 rehearsal),950 total.
+It fixed absent-side kicking: Isaac FL170/173 andFR172/173 relaxed endpoints,
+strict chains100/173 and98/173. But4 Isaac falls occurred only in lateral±.08
+cases; MuJoCo0/56 strict chains (stationary/backward endpoint~.11s late, forward
+hold valid~.62–.66), zero MuJoCo falls. Forward travel1.20m/22s at.12 request.
+Not a qualified traveling dance; original walking and dance fallbacks preserved.
+
+Final bounded refinement `logs/cpg_travel_curriculum_20261101/hold_transfer/`
+starts from symmetric model1749, with up to1050 remaining updates and original
+deadline (total<=2000). Dance chunks300/400/250,25 walking rehearsal each; optional
+bounce100 only if budget and bilateral gates permit. TrainingmaxXY.12/yaw.15;
+demo lateral cap reduced.08→.06 and yaw.15→.10, forward.12 unchanged. New optional
+kick_tracking_std=.015 (legacy default.03), hold_quality4 (was2), hold angular
+std.3. Geometry,tempo,60ms endpoint tolerance and80% hold test unchanged. Compare
+changed command ranges explicitly. Final per-leg physical gates stay strict.
+The small rehearsal budget reduces possible erosion of newly learned holds.
+New reward-scale validation and full component smoke run before training.
+Persistent tmux `go2_cpg_hold_transfer`; user authorization permits these training
+adjustments. No hardware actions or automatic restart of closed phases.
+
+# Travel curriculum bilateral correction (2026-11-01, latest)
+
+Kick acquisition reached600 additional updates (500 dance+100 walking rehearsal;
+700 total including parent walking100). Falls were eliminated; gate600 had
+Isaac1079/1120 steps,18/352 strict kick chains and MuJoCo187/192 steps,13/56 kicks.
+Persistent asymmetry: FL0/176 even relaxed endpoints,FR136/176. Before the next
+training child entered main/PPO, a scoped review watcher terminated that child.
+No new updates were lost or performed; gate600/model1499 is immutable. The
+supervisor records `failed` because the child was intentionally stopped; see
+`kick_acquisition/bilateral_review_stop.json`, not an unexplained training crash.
+
+Within the original authorization/deadline/budget, new phase
+`logs/cpg_travel_curriculum_20261101/symmetric_acquisition/` applies the existing
+exact sagittal actor wrapper to gate600 and resumes PPO. Walking rehearsal uses
+the same wrapper. At most1300 remaining updates, with dance chunks200/300/500
+and50 rehearsal each; optional bounce100 only after qualification. Reuse the
+unchanged walking fallback's exact prior evaluation (checkpoint/settings checked).
+Final kick gates now require each leg separately >=80% Isaac and>=70% MuJoCo,
+plus existing travel/step/fall gates. No tolerance relaxation, no hardware action.
+Persistent tmux `go2_cpg_symmetric_acquisition`; read child runner status.
+
+# Travel curriculum adjustment: kick acquisition (2026-11-01)
+
+Parent travel-first run completed100 walking updates and qualified walking in
+both simulators. Direct untrained dance transfer produced42 Isaac falls and0
+strict kicks; MuJoCo had0 falls but0/56 kick chains. Parent conservatively stopped
+before kick training and saved walking videos/selection. Closed parent unchanged.
+
+Within the same user-authorized experiment and original four-hour deadline,
+`logs/cpg_travel_curriculum_20261101/kick_acquisition/` performs bounded new-skill
+learning from that qualified walking checkpoint. Normal physical initialization
+and ordinary walking have passed; failure of the untrained kick policy is now
+explicitly allowed as a learning baseline, not a deployable controller. Skip
+additional walking warm-up. First acquisition200 PPO updates then50 walking
+rehearsal; evaluate strict contacts/holds and falls. Existing post-learning review
+stops remain active. At most1900 additional updates, combined parent+child<=2000.
+Do not reopen/restart either terminal session. No hardware actions. Read child
+runner_status.json before claiming dance progress. This is an authorized training
+adjustment under the user's latest request, not relaxation of final demo gates.
+
+# Authorized travel-first curriculum (2026-11-01, latest)
+
+User approved trying the earlier travel-first curriculum and making training
+adjustments autonomously. Goal is visible stable displacement for a future demo,
+not precise velocity tracking. User will independently provide a multi-root
+Quad-SDK workspace later; no hardware or external checkout changes now.
+
+New session `logs/cpg_travel_curriculum_20261101/`, runner
+`scripts/run_cpg_travel_curriculum.py`, tmux `go2_cpg_travel_curriculum`.
+4096 envs,24-step rollouts,seed81,up to2000 additional updates and four-hour
+wall-clock deadline. Source immutable walking M/model799 (pre-kick/bounce).
+Train walking100 then optionally200 updates, with changing commands and
+modest transfer randomization. Qualify physical travel in Isaac and MuJoCo
+before adding kicks. Dance chunks200/300/500/400 each followed by50 walking
+rehearsal updates preserve ordinary travel; stop once qualified. Bounce100
+only after both simulators qualify dance. Budget checks prevent excess updates.
+No automatic restart after terminal state. Preserve prior policies and reports.
+
+Gates: >=95% strict steps in both simulators,zero falls,MuJoCo forward speed
+>=.06m/s and >=.8m forward displacement over22s at.12m/s request; backward>=.035
+and lateral>=.025m/s with correct sign. Dance additionally requires>=80% strict
+Isaac kick chains and>=70% MuJoCo chains. If dance fails, retain a qualified
+walking candidate and explicitly report choreography incomplete. Do not rank by
+MuJoCo alone. Kick/hold/recovery excluded from velocity reward and tracking;
+whole-demo net displacement is separately labeled and includes pauses.
+
+Preliminary old walking policy MuJoCo:31/31 forward steps,zero falls,2.46m
+forward over22s at.15m/s request (~.117m/s travel). Zero-residual nominal probe
+lost balance at5.78s: not a standalone deterministic gait. Portable runtime now
+supports both walking and dance shared controllers; existing dance path retained.
+New body_position traces permit direct displacement measurements. Final videos
+use fixed camera; selected bundle remains simulation/shadow only.
+
+# Fine-tuning review result (2026-11-01, latest)
+
+User authorized CPG fine-tuning for Quad-SDK/MuJoCo transfer and explicitly
+excluded kick pauses from velocity tracking. Completed 1200 additional updates,
+4096 environments, 24-step rollouts, seed71 (117,964,800 transitions), from
+selected U/model2999. Preserve source and every checkpoint. New session:
+`logs/cpg_finetune_20261101/`; no automatic training restart/extension.
+
+Tracking now excludes kick/hold/recovery and initialization, with no catch-up.
+Training uses changing commands, deployment-style foot-state estimates, modest
+physical randomization/delay, stronger/narrower tracking rewards and late-kick
+costs. Legacy flags default off. Command clock remains 90 BPM, zero command dances.
+
+Final gate1200 triggered step-retention review: Isaac904/1120 steps and18/352
+strict kick chains, zero falls. Automatic score favored gate700 (MuJoCo49/56
+kicks) but omitted Isaac hold retention (57/352). Manual review retains gate100,
+model3099: Isaac1120/1120 steps,321/352 kicks; MuJoCo192/192 steps,33/56 kicks,
+zero falls. Original U baseline was1120/1120,351/352 in Isaac and185/192,20/56
+in MuJoCo. Selection is `selected.json`; `automatic_selection.json` and runner
+records preserve the superseded gate700 recommendation. Runner's `selected_*`
+videos are gate700 diagnostics; final reviewed videos use `reviewed_*` names.
+
+At the same .05m/s forward request, actual MuJoCo travel speed improved
+.0159→.0205m/s; average directional gain only.554→.562. More updates did not
+solve travel and degraded dance. Higher fixed commands retained Isaac1120/1120
+steps,320/352 kicks and MuJoCo192/192 steps,33/56 kicks, zero falls. Simulation
+joystick caps .08m/s forward/backward,.06m/s lateral,.15rad/s yaw; combined XY
+still capped.08. Actual forward at.08 request is.0344m/s. Backward strict kicks
+remain0/7, lateral/pure turns3/7 each; stationary/forward/mixed7/7 each. Do not
+claim general tracking or hardware readiness. Speeds exclude pauses.
+
+Worker1100-frame replay had0rad target difference; ONNX/JIT max1.526e-5.
+Actual Quad-SDK ROS2 localhost-domain77 replay passed400 packets and sensor-loss
+latch. Robot disconnected; adapter still restricted to `/cpg_sim/` shadow output.
+Report: `reports/go2_cpg_finetune.md`. Preserve original U as dance fallback.
+Final changing-command Isaac:1472/1472 steps,402/480 kicks. Reviewed zero video
+24/24 steps,7/7 kicks; scripted higher-input video42/44 steps,9/14 kicks; no falls.
+Bundle: `exports/go2_cpg_quad_sdk_finetuned_20261101/`.
+
+
+## Authorized CPG travel fine-tune (2026-11-01, latest)
+
+User approved fine-tuning the dance for faster, more accurate joystick travel,
+considering Quad-SDK/MuJoCo port differences. Kick/hold/recovery must be excluded
+from velocity reward AND travel-speed averages; do not average their zeros into
+tracking or accelerate to catch up. Neutral still dances. No hardware action.
+
+New session logs/cpg_finetune_20261101 (separate from closed prior sessions),
+persistent runner scripts/run_cpg_finetune.py / tmux go2_cpg_finetune. Budget up to
+1200 additional PPO updates,4096 envs,24step rollouts,seed71,adaptive LR resumed
+from immutable U model2999. Gates100/300/700/1200 compare identical low-speed
+commands in32x1600-step Isaac evaluations(seed9101) and eight22s MuJoCo cases.
+Four-hour upper wall-clock limit recorded in session.json; no automatic restart.
+Read runner_status.json before claiming progress/completion. Selected policy gets
+changing-command evaluation and two MuJoCo videos. Source snapshots preserved.
+
+Initial objective: velocity+1.5/.10m/s Gaussian scale,yaw+.75/.15rad/s scale;
+25% neutral training commands; requests change every3–5s,acceleration bounds
+unchanged. Contact,clearance,slip,hold,bounce,geometry and strict audit gates stay.
+Late KICK earns no timely completion credit and an integrated deadline penalty;
+actual trajectory/transition tolerance is not loosened. Deployable flat-ground
+encoder/IMU/support-foot feedback is used in training as in the port, with fixed
+nominal16.087kg compensation. Independent audits always use physical foot truth.
+Opt-in GaitConfig fields preserve archived configurations' behavior.
+
+Training randomizes foot friction.4–1.,mass±5%,armature0–.015,gains±10%,and actuator
+delay0–1physics steps. Nominal evaluations remove randomization/delay. Training
+speed starts.08m/s; range may rise to.12 then.15 only with>=97% Isaac steps,
+>=95% MuJoCo steps,>=50% strict MuJoCo kick chains,and travel directional gain>=.75.
+Stop/review if Isaac falls>5% envs,any MuJoCo fall,Isaac step retention drops>10pp
+or MuJoCo>15pp versus baseline. Preserve best eligible earlier checkpoint.
+Initial32envx500step randomized preflight passed108componenttests,zero falls/resets.
+No original checkpoint,old report or prior bundle is overwritten. Quad-SDK actual
+LegController hardware mode and foot-force calibration still need qualification.
+
+## MuJoCo / Quad-SDK deployment work (2026-11-01, latest)
+
+User requested full-controller MuJoCo joystick testing, selected the Unitree
+wireless remote, and identified the eventual deployment framework as
+robomechanics/quad-sdk branch devel_ros2. Robot is not connected. Neutral/stale
+motion input keeps dancing at zero travel; this supersedes old stop-on-neutral
+ideas. State-feedback loss is a separate latched controller fault.
+
+Shared pure controller: tasks/locomotion/cpg/controller.py; Isaac wrappers retain
+behavior. Portable runtime: deploy/cpg/runtime.py; local simulator:
+scripts/cpg_mujoco.py. It uses the existing selected U model2999 without training.
+Encoder/IMU/support-foot estimates feed control; independent MuJoCo truth feeds
+qualification. Raw SDK joint order FR/FL/RR/RL differs from CPG feet FL/FR/RL/RR
+and Quad-SDK legs FL/RL/FR/RR. Preserve explicit tested mappings. SDK2 wireless
+receiver is read-only and cannot publish motor commands.
+
+Final four62s cases: neutral both starting diagonals138/138 strict steps; scripted
+small joystick commands133/138, zero falls across all four. Strict kick chains
+neutral0/44 and changing commands10/44: measured endpoint approximately70ms late
+versus60ms tolerance. Median remaining-hold validity100% does not erase lateness.
+Earlier R no-bounce check also failed strict kick timing. Do not loosen gates or
+claim full choreography transferred. No hardware readiness, training, or physical
+remote test. Reports: reports/go2_cpg_mujoco.md; docs/go2_cpg_mujoco.md;
+logs/cpg_mujoco_20261101/summary.json. Videos video_zero_v2/dance.mp4 (22s) and
+video_scripted/dance.mp4 (40s) beneath that log directory. Early diagnostics used
+an incorrect MuJoCo velocity origin; final_* use synchronized mjOBJ_XBODY and
+independent audits. See superseded_diagnostics.json; do not cite old results.
+
+Quad-SDK checkout .local/quad-sdk at67d2b64749e13cd924a778be0eb1e7914b014582 was
+inspected only. Its quad_msgs built locally. scripts/cpg_quad_ros2.py is a ROS2
+simulation/shadow adapter publishing ONLY /cpg_sim/, with a separate policy
+worker to avoid ROS3.12/policy3.11 Python ABI conflicts. Actual hardware driver
+LegController mode, airborne-fault fallback and raw foot-force calibration remain
+unimplemented/unqualified; ONNX alone cannot replace its existing LearnedPolicy.
+106 existing tests +9 deployment tests passed;3100frame worker replay had zero
+joint-target difference;400packet local ROS2 replay passed the stale-sensor latch.
+Export exports/go2_cpg_quad_sdk_candidate is a portable candidate, not hardware
+approval. Preserve closed training session files/manifests and historical work.
+
+## Current preference: continuous dancing (2026-11-01)
+
+The user chose to keep continuous dancing for now after discussing joystick
+standing/restart behavior. Zero velocity continues the full choreography; do not
+implement neutral-input standing or restart logic based on that earlier discussion.
+A new no-training, zero-command full-dance recording uses the selected U checkpoint:
+`logs/cpg_zero_command_dance_20261101/video/rl-video-step-0.mp4`.
+All three commands are zero. The22s simulation contains24completed steps and7/7
+qualified kick–hold–landing chains, no falls/resets, and ends in four-foot support.
+This bounded recording is separate from the closed autonomous training session.
+
 ## CPG residual controller: verified architecture and session results (2026-11-01)
 
 This section supersedes earlier CPG progress notes only. Preserve all historical

@@ -8,6 +8,17 @@ from unitree_rl_lab.tasks.locomotion.cpg.adapter import ResidualPositionAction,r
 from unitree_rl_lab.tasks.locomotion.cpg.symmetry import mirror_observation
 
 
+def test_tracking_excludes_pause_without_changing_active_target():
+    cfg=GaitConfig(exclude_pause_tracking=True)
+    command=SimpleNamespace(cfg=SimpleNamespace(gait=cfg),velocity=torch.tensor([[.05,0.,.1]]).repeat(4,1),
+        travel_velocity=torch.tensor([[.05,0.,.1],[0,0,0],[0,0,0],[0,0,0]]),
+        ready=torch.ones(4,dtype=torch.bool),travel_active=torch.tensor([True,False,False,False]),sync=lambda:None,
+        robot=SimpleNamespace(data=SimpleNamespace(root_lin_vel_b=torch.tensor([[.05,0,0],[1.,0,0],[0,1.,0],[0,0,0]]),root_ang_vel_b=torch.tensor([[0,0,.1],[0,0,1.],[0,0,1.],[0,0,0]]))))
+    env=SimpleNamespace(command_manager=SimpleNamespace(get_term=lambda _:command))
+    for term in ('velocity','yaw'):
+        torch.testing.assert_close(reward(env,term),torch.tensor([1.,0.,0.,0.]))
+
+
 def test_actual_balanced_preroll_actor_features_reflect():
     cfg=GaitConfig(swing_seconds=.2,balanced_phrases=True)
     command=object.__new__(CPGDanceCommand)

@@ -1,0 +1,20 @@
+{
+  "hardware_access": false,
+  "machine": "x86_64",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "ros_distro": "jazzy",
+  "os_release": "PRETTY_NAME=\"Ubuntu 24.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.5 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
+  "selection": "/home/rml2/Documents/nicholas_chung/go2-conga/unitree_rl_lab/logs/cpg_hardware6h_20261102/selected.json",
+  "worker_start_seconds": 0.6645594679284841,
+  "worker_ready": true,
+  "benchmark": {
+    "packets": 602,
+    "median_ms": 2.420400967821479,
+    "p99_ms": 3.1387871131300926,
+    "max_ms": 3.722662106156349,
+    "all_under_15ms": true,
+    "description": "Offline worker replay on this host, not full ROS/motor timing qualification"
+  },
+  "status": "passed"
+}

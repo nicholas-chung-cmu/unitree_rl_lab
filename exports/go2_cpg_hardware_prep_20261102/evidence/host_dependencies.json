@@ -1,0 +1,13 @@
+{
+  "python": "3.11.13 (main, Jun  5 2025, 13:12:00) [GCC 11.2.0]",
+  "architecture": "x86_64",
+  "packages": {
+    "torch": "2.7.0+cu128",
+    "numpy": "1.26.0",
+    "onnxruntime": "1.23.2",
+    "PyYAML": "6.0.2",
+    "mujoco": "3.6.0",
+    "imageio": "2.37.0",
+    "imageio-ffmpeg": "0.6.0"
+  }
+}

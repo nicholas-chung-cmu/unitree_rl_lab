@@ -1,0 +1,17 @@
+{
+  "onnx_sha256": "946da6136935657c7bfc094899fa1ccdb65a5330ef145372d170821dae4cfd2f",
+  "jit_sha256": "431a33dd406de061ccb49f1521e2a089b1ee18f4a906a59f864e6599d892582d",
+  "checkpoint_sha256": "d3c22e8db87301f5bb198f1970593dbe14e6455c4d01d707b1ab23d610497e34",
+  "actor_critic_actions": [
+    75,
+    90,
+    12
+  ],
+  "equivariant_actor": true,
+  "onnx_export": "policy.onnx",
+  "jit_export": "policy.pt",
+  "deploy_metadata": "deploy.yaml",
+  "settings": "settings.json",
+  "hardware_compatible": false,
+  "qualification": "MuJoCo stationary stepping passes in tested cases; dynamic steps and strict kick timing remain incomplete; ROS2 shadow messages tested only"
+}
